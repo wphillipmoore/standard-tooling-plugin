@@ -1,0 +1,16 @@
+{
+  "name": "standard-tooling-marketplace",
+  "owner": {
+    "name": "wphillipmoore"
+  },
+  "metadata": {
+    "description": "Standard tooling plugin marketplace for all managed repositories."
+  },
+  "plugins": [
+    {
+      "name": "standard-tooling",
+      "source": ".",
+      "description": "Shared hooks, skills, agents, and commands for all managed repositories in the standard-tooling ecosystem."
+    }
+  ]
+}
