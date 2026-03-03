@@ -1,0 +1,42 @@
+{
+  "description": "Standard tooling guardrails — mechanical enforcement of workflow rules that were previously documentation-only.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-raw-git-commit.sh",
+            "statusMessage": "Checking for raw git commit..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-raw-gh-pr-create.sh",
+            "statusMessage": "Checking for raw gh pr create..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-protected-branch-work.sh",
+            "statusMessage": "Checking branch protection..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-heredoc.sh",
+            "statusMessage": "Checking for heredoc syntax..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-memory-writes.sh",
+            "statusMessage": "Checking for MEMORY.md writes..."
+          }
+        ]
+      }
+    ]
+  }
+}
