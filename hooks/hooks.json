@@ -37,6 +37,34 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/remind-finalize.sh",
+            "statusMessage": "Checking for PR submission..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-deprecation-warnings.sh",
+            "statusMessage": "Checking for deprecation warnings..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop-guard-finalization.sh",
+            "statusMessage": "Checking finalization status..."
+          }
+        ]
+      }
     ]
   }
 }
