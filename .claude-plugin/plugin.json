@@ -1,0 +1,10 @@
+{
+  "name": "standard-tooling",
+  "description": "Shared hooks, skills, agents, and commands for all managed repositories in the standard-tooling ecosystem.",
+  "version": "0.1.0",
+  "author": {
+    "name": "wphillipmoore"
+  },
+  "repository": "https://github.com/wphillipmoore/standard-tooling-plugin",
+  "license": "MIT"
+}
