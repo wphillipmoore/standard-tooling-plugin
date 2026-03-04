@@ -1,0 +1,73 @@
+name: Publish release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: "publish: release"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Extract version
+        id: version
+        run: |
+          version=$(jq -r '.version' .claude-plugin/plugin.json)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag already exists
+        id: tag_check
+        run: |
+          if git rev-parse "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Tag and release
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: wphillipmoore/standard-actions/actions/publish/tag-and-release@v1.1
+        with:
+          version: ${{ steps.version.outputs.version }}
+          release-title: standard-tooling-plugin
+          release-notes: |
+            ## standard-tooling-plugin v${{ steps.version.outputs.version }}
+
+            Claude Code plugin delivering shared hooks, skills, agents, and commands for the standard-tooling ecosystem.
+
+            ## Links
+
+            - [Documentation](https://wphillipmoore.github.io/standard-tooling-plugin/)
+
+      - name: Generate app token for bump PR
+        if: steps.tag_check.outputs.exists == 'false'
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Version bump PR
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: wphillipmoore/standard-actions/actions/publish/version-bump-pr@v1.1
+        with:
+          current-version: ${{ steps.version.outputs.version }}
+          version-file: .claude-plugin/plugin.json
+          version-regex: '(\s*"version":\s*").*("\s*)'
+          develop-version-command: jq -r '.version' .claude-plugin/plugin.json
+          app-token: ${{ steps.app-token.outputs.token }}

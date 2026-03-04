@@ -1,0 +1,64 @@
+site_name: Standard Tooling Plugin
+site_description: Claude Code plugin delivering shared hooks, skills, agents, and commands for the standard-tooling ecosystem
+repo_url: https://github.com/wphillipmoore/standard-tooling-plugin
+repo_name: wphillipmoore/standard-tooling-plugin
+
+docs_dir: docs
+strict: true
+edit_uri: ""
+
+extra:
+  version:
+    provider: mike
+
+plugins:
+  - search
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+    - search.suggest
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Releases:
+      - Changelog: changelog.md
+      - Release Notes:
+          - releases/index.md
+  - Hooks: hooks/index.md
+  - Skills: skills/index.md
+  - Agents: agents/index.md
