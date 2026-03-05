@@ -13,18 +13,18 @@ that enforces workflow compliance mechanically.
 
 ## What's Included
 
-| Component | Purpose |
-|-----------|---------|
-| [Hooks](hooks/index.md) | PreToolUse/PostToolUse/Stop guardrails that enforce workflow rules |
-| [Skills](skills/index.md) | Shared workflow skills (commit, PR, release, publish, etc.) |
-| [Agents](agents/index.md) | Bootstrap subagent for session-start context loading |
+|Component|Purpose|
+|---|---|
+|[Hooks](hooks/index.md)|Pre/PostToolUse/Stop workflow guardrails|
+|[Skills](skills/index.md)|Shared workflow skills (commit, PR, etc.)|
+|[Agents](agents/index.md)|Bootstrap subagent for session context|
 
 ## Two-Repo Model
 
-| Repo | Delivers | Distribution |
-|------|----------|-------------|
-| `standard-tooling` | Python CLIs (`st-*`), bash validators, git hooks | PATH |
-| `standard-tooling-plugin` | Hooks, skills, agents, commands | Claude Code plugin |
+|Repo|Delivers|Distribution|
+|---|---|---|
+|`standard-tooling`|Python CLIs (`st-*`), validators|PATH|
+|`standard-tooling-plugin`|Hooks, skills, agents, commands|Claude Code plugin|
 
 These are complementary: the plugin tells Claude how to behave; PATH makes the
 tools available to run.
