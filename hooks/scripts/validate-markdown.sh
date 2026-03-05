@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 # validate-markdown.sh — Validate a Markdown file.
-# Auto-fixes with markdownlint --fix, then checks for remaining issues.
+# Delegates to markdown-standards for consistent checks with CI.
+# Auto-fixes with markdownlint --fix first, then runs the full check.
 set -euo pipefail
 
 file="$1"
-errors=""
 
-# Required
+# Both tools are required
 if ! command -v markdownlint &>/dev/null; then
   echo "FATAL: markdownlint not found on PATH" >&2
+  exit 2
+fi
+if ! command -v markdown-standards &>/dev/null; then
+  echo "FATAL: markdown-standards not found on PATH" >&2
   exit 2
 fi
 
 # Auto-fix: markdownlint --fix
 markdownlint --fix "$file" 2>/dev/null || true
 
-# Check: markdownlint (remaining unfixable issues)
-if ! output=$(markdownlint "$file" 2>&1); then
-  errors+="$output"$'\n'
-fi
-
-if [[ -n "$errors" ]]; then
+# Check: markdown-standards (same checks as CI — markdownlint + structural)
+if ! errors=$(markdown-standards "$file" 2>&1); then
   echo "$errors" >&2
   exit 2
 fi
