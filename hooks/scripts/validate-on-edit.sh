@@ -30,6 +30,11 @@ case "$file_path" in
     validator="$SCRIPT_DIR/validate-yaml.sh"
     ;;
   *.toml)
+    # Skip language-specific manifests — generic TOML tools don't understand
+    # their semantics (e.g. taplo can't validate Cargo.toml dependencies).
+    case "$(basename "$file_path")" in
+      Cargo.toml | Cargo.lock) exit 0 ;;
+    esac
     validator="$SCRIPT_DIR/validate-toml.sh"
     ;;
   *)
