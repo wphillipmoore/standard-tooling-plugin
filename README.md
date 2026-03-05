@@ -1,9 +1,16 @@
 # standard-tooling-plugin
 
-Claude Code plugin for the standard-tooling ecosystem. Delivers shared hooks,
-skills, agents, and commands to all managed repositories.
+## Table of Contents
+
+- [Overview](#overview)
+- [What's Included](#whats-included)
+- [Installation](#installation)
+- [Plugin Namespace](#plugin-namespace)
 
 ## Overview
+
+Claude Code plugin for the standard-tooling ecosystem. Delivers shared hooks,
+skills, agents, and commands to all managed repositories.
 
 This plugin is the behavioral counterpart to the
 [standard-tooling](https://github.com/wphillipmoore/standard-tooling) Python
@@ -13,12 +20,12 @@ that enforces workflow compliance mechanically.
 
 ## What's Included
 
-| Component | Purpose |
-|-----------|---------|
-| **Hooks** | PreToolUse guardrails (block raw git commit, enforce branch rules, etc.) |
-| **Skills** | Shared workflow skills (commit, PR, release, publish, etc.) |
-| **Agents** | Bootstrap subagent for session-start context loading |
-| **Commands** | User-invokable slash commands |
+|Component|Purpose|
+|---|---|
+|**Hooks**|PreToolUse guardrails (block raw git commit, etc.)|
+|**Skills**|Shared workflow skills (commit, PR, release, etc.)|
+|**Agents**|Bootstrap subagent for session-start context|
+|**Commands**|User-invokable slash commands|
 
 ## Installation
 
