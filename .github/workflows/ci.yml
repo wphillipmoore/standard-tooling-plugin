@@ -53,7 +53,7 @@ jobs:
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Run markdownlint
-        run: markdown-standards
+        run: markdownlint 'docs/site/**/*.md' 'README.md'
 
   mkdocs-build:
     name: "ci: mkdocs-build"
@@ -79,7 +79,7 @@ jobs:
   # ---------------------------------------------------------------------------
 
   security-and-standards:
-    uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@v1.1
+    uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@develop
     with:
       language: bash
       run-codeql: 'false'
