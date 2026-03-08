@@ -198,7 +198,9 @@ directory:
 
    ```bash
    # Get the child issue's database ID
-   child_db_id=$(gh api repos/<current_owner>/<current_repo>/issues/<child_number> --jq '.id')
+   child_db_id=$(gh api \
+     repos/<current_owner>/<current_repo>/issues/<child_number> \
+     --jq '.id')
 
    # Link to parent
    gh api repos/<parent_owner>/<parent_repo>/issues/<parent_number>/sub_issues \
@@ -228,7 +230,10 @@ directory:
    Add the new sub-issue to the same project:
 
    ```bash
-   gh project item-add <project_number> --owner <owner> --url <child_issue_url> --format json --jq '.id'
+   gh project item-add <project_number> \
+     --owner <owner> \
+     --url <child_issue_url> \
+     --format json --jq '.id'
    ```
 
 **Captures**: `issue_number` (the repo-local issue number to use for

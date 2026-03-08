@@ -9,7 +9,10 @@
   "plugins": [
     {
       "name": "standard-tooling",
-      "source": ".",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/wphillipmoore/standard-tooling-plugin.git"
+      },
       "description": "Shared hooks, skills, agents, and commands for all managed repositories in the standard-tooling ecosystem."
     }
   ]

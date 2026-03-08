@@ -52,7 +52,7 @@ If not found, search for the standard-tooling checkout:
 Report which path was found, or **WARNING: st-commit not found** if neither
 exists. Include the PATH export command the user would need:
 
-```
+```bash
 export PATH="../standard-tooling/.venv/bin:../standard-tooling/scripts/bin:$PATH"
 ```
 
@@ -72,7 +72,7 @@ Run `git config core.hooksPath` and report the result.
 If not set or empty, report:
 **WARNING: Git hooks not configured.** Include the setup command:
 
-```
+```bash
 git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
 ```
 
@@ -80,7 +80,7 @@ git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
 
 Emit the final report as a structured summary using this format:
 
-```
+```text
 === Session Bootstrap ===
 Repository:    <repo name from directory>
 Profile:       <repository_type> | <branching_model> | <primary_language>

@@ -81,7 +81,9 @@ gh repo view --json owner --jq '.owner.login'
 List available GitHub Projects:
 
 ```bash
-gh project list --owner <owner> --format json --jq '.projects[] | [.number, .title] | @tsv'
+gh project list --owner <owner> \
+  --format json \
+  --jq '.projects[] | [.number, .title] | @tsv'
 ```
 
 Ask the user to select one. Default to the project associated with the
@@ -216,7 +218,7 @@ The user may also provide a custom response via the "Other" option.
 
 Assemble the issue and present it to the user for review:
 
-```
+```text
 Project: <project_name>
 Repository: <target_repo>
 Title: <title>
@@ -242,7 +244,9 @@ After user approval, execute the following steps in order.
 **Step 1 — Create the issue.** Write the body to a temp file and create:
 
 ```bash
-gh issue create --repo <target_repo> --title "<title>" --label "<label>" --body-file <tempfile>
+gh issue create --repo <target_repo> \
+  --title "<title>" --label "<label>" \
+  --body-file <tempfile>
 ```
 
 Capture the issue URL from stdout.
@@ -250,19 +254,27 @@ Capture the issue URL from stdout.
 **Step 2 — Add to project.** Add the issue and capture the item ID:
 
 ```bash
-gh project item-add <project_number> --owner <owner> --url <issue_url> --format json --jq '.id'
+gh project item-add <project_number> \
+  --owner <owner> --url <issue_url> \
+  --format json --jq '.id'
 ```
 
 **Step 3 — Set priority:**
 
 ```bash
-"$TOOLING/scripts/gh/set-project-field.sh" --owner <owner> --project <project_number> --item <item_id> --field Priority --value <priority>
+"$TOOLING/scripts/gh/set-project-field.sh" \
+  --owner <owner> --project <project_number> \
+  --item <item_id> --field Priority \
+  --value <priority>
 ```
 
 **Step 4 — Set work type:**
 
 ```bash
-"$TOOLING/scripts/gh/set-project-field.sh" --owner <owner> --project <project_number> --item <item_id> --field "Work Type" --value <work_type>
+"$TOOLING/scripts/gh/set-project-field.sh" \
+  --owner <owner> --project <project_number> \
+  --item <item_id> --field "Work Type" \
+  --value <work_type>
 ```
 
 ### Report

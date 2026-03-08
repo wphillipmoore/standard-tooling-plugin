@@ -6,6 +6,7 @@ description: Handle RTFM forced interruptions by capturing failure context, iden
 # RTFM protocol
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Inputs](#inputs)
 - [Workflow](#workflow)
@@ -13,17 +14,21 @@ description: Handle RTFM forced interruptions by capturing failure context, iden
 - [Resources](#resources)
 
 ## Overview
+
 RTFM is a forced interruption that indicates a standards violation or a missed
 requirement that should have been clear from the governing documentation. Pause
 all other work and complete this workflow before resuming normal work.
 
 ## Inputs
+
 Collect from the triggering message and session context:
+
 - Optional reason provided after `RTFM` (hint about the violated standards)
 - Current branch and git status
 - Files touched and action sequence that triggered the violation
 
 ## Workflow
+
 1. Pause all other work immediately.
 2. Capture the failure context with concrete evidence (branch, git status,
    files touched, and the action sequence that triggered the violation).
@@ -36,7 +41,8 @@ Collect from the triggering message and session context:
    recurrence before resuming normal work.
 
 ## Issue template
-```
+
+```text
 Title: RTFM: <short failure summary>
 
 Violated standard(s):
@@ -62,6 +68,7 @@ Proposed documentation update:
 Label: `rtfm`
 
 ## Resources
+
 - `docs/ai-agents/workflows/interaction-contract.md` (RTFM protocol section)
 - `docs/ai-agents/behavior/agent-guardrails.md`
 - `docs/ai-agents/behavior/agent-pre-response-checklist.md`
