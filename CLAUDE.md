@@ -59,10 +59,10 @@ User-invokable slash commands (Markdown files).
 
 ## Two-Repo Model
 
-| Repo | Delivers | Distribution |
-|------|----------|-------------|
-| `standard-tooling` | Python CLIs (`st-*`), bash validators, git hooks | PATH |
-| `standard-tooling-plugin` | Hooks, skills, agents, commands | Claude Code plugin |
+| Repo                       | Delivers                  | Via    |
+| -------------------------- | ------------------------- | ------ |
+| `standard-tooling`         | Python CLIs, bash, hooks  | PATH   |
+| `standard-tooling-plugin`  | Skills, agents, commands  | Plugin |
 
 These are complementary: the plugin tells Claude how to behave; PATH makes the
 tools available to run.

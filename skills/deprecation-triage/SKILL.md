@@ -6,6 +6,7 @@ description: Triage deprecation warnings into a consistent workflow with issue t
 # Deprecation triage
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Inputs](#inputs)
 - [Workflow](#workflow)
@@ -13,11 +14,14 @@ description: Triage deprecation warnings into a consistent workflow with issue t
 - [Resources](#resources)
 
 ## Overview
+
 Apply the deprecation warning triage policy to prevent warning drift and ensure
 issues are tracked and resolved in-cycle or deferred explicitly.
 
 ## Inputs
+
 Collect or request:
+
 - Full warning text
 - Location (file/module and call site)
 - Environment (dev/test/prod)
@@ -25,6 +29,7 @@ Collect or request:
 - Whether the warning is user-visible
 
 ## Workflow
+
 1. Search for an existing issue that matches the warning text and location.
 2. If an issue exists and the warning is mid-cycle, defer to the next
    dependency update.
@@ -35,7 +40,8 @@ Collect or request:
 7. Update the issue with each re-test and close when resolved.
 
 ## Issue template
-```
+
+```text
 Title: Deprecation: <dependency or component> - <short description>
 
 Warning text:
@@ -76,4 +82,5 @@ Suppression (if any):
 ```
 
 ## Resources
+
 - `docs/development/deprecation-warnings.md`
