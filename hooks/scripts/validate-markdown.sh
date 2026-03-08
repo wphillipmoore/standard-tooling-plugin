@@ -11,8 +11,8 @@ if ! command -v markdownlint &>/dev/null; then
   echo "FATAL: markdownlint not found on PATH" >&2
   exit 2
 fi
-if ! command -v markdown-standards &>/dev/null; then
-  echo "FATAL: markdown-standards not found on PATH" >&2
+if ! command -v st-markdown-standards &>/dev/null; then
+  echo "FATAL: st-markdown-standards not found on PATH" >&2
   exit 2
 fi
 
@@ -20,7 +20,7 @@ fi
 markdownlint --fix "$file" 2>/dev/null || true
 
 # Check: markdown-standards (same checks as CI — markdownlint + structural)
-if ! errors=$(markdown-standards "$file" 2>&1); then
+if ! errors=$(st-markdown-standards "$file" 2>&1); then
   echo "$errors" >&2
   exit 2
 fi
