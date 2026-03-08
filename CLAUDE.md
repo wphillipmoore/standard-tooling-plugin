@@ -4,9 +4,11 @@ This file provides guidance to Claude Code when working in this repository.
 
 ## Auto-memory policy
 
-**Do NOT use MEMORY.md.** All behavioral rules, conventions, and workflow
-instructions belong in managed, version-controlled documentation (CLAUDE.md,
-AGENTS.md, skills, or docs/).
+**Do NOT use MEMORY.md.** Never write to MEMORY.md or any file under the
+memory directory. All behavioral rules, conventions, and workflow instructions
+belong in managed, version-controlled documentation (CLAUDE.md, AGENTS.md,
+skills, or docs/). If you want to persist something, tell the human what you
+would save and let them decide where it belongs.
 
 ## Shell command policy
 
