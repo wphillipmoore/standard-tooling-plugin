@@ -24,6 +24,11 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-heredoc.sh",
             "statusMessage": "Checking for heredoc syntax..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-associative-arrays.sh",
+            "statusMessage": "Checking for bash associative arrays..."
           }
         ]
       },
