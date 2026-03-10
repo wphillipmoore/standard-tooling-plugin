@@ -21,9 +21,8 @@ code changes are made.
 2. **Branch State** — reports the current branch and warns if on a protected
    branch (`main` or `develop`)
 
-3. **Standard Tooling PATH** — verifies `st-commit` is available on PATH,
-   checking the sibling checkout at `../standard-tooling/.venv/bin/` as a
-   fallback
+3. **Standard Tooling CLI** — verifies `st-commit` is available on PATH
+   (expected inside the dev container)
 
 4. **Standards and Conventions** — checks if the standards repo is available
    locally at `../standards-and-conventions`
@@ -40,7 +39,7 @@ Repository:    <repo name>
 Profile:       <repository_type> | <branching_model> | <primary_language>
 Branch:        <current branch> [WARNING if protected]
 Validation:    <validation command or "not configured">
-st-commit:     <path or "NOT FOUND">
+st-commit:     <available or "NOT FOUND">
 Standards:     <local or web fallback>
 Git hooks:     <hooks path or "NOT CONFIGURED">
 =========================

@@ -31,21 +31,37 @@ Acceptance Criteria, Validation) and assigns the issue to a GitHub Project.
 
 ### Tooling
 
-Helper scripts live in the `standard-tooling` sibling repository. Resolve
-the path by checking these locations in order:
+This skill runs on the **host**. Almost all commands run inside the dev
+container via `st-docker-run`, which mounts the repo at `/workspace` and
+passes through `GH_TOKEN` and other environment variables automatically.
 
-1. `../standard-tooling` (sibling checkout — preferred)
-2. `.standard-tooling` (CI checkout)
+**Host commands** — run directly:
 
-```bash
-if [ -d "../standard-tooling" ]; then
-  TOOLING="../standard-tooling"
-elif [ -d ".standard-tooling" ]; then
-  TOOLING=".standard-tooling"
-fi
+- `git` — local git operations
+
+**Container commands** — run via `st-docker-run`:
+
+- `gh` — all GitHub CLI operations
+- `st-list-project-repos`, `st-ensure-label`, `st-set-project-field`
+
+Search for `st-docker-run` in this order:
+
+1. `../standard-tooling/.venv-host/bin/st-docker-run` (sibling checkout
+   with host venv)
+2. `st-docker-run` on PATH (already installed)
+
+If neither is found, **abort** with a message directing the user to set up
+the host venv:
+
+```text
+st-docker-run not found. Run the following one-time setup:
+  cd ../standard-tooling
+  UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
 ```
 
-If neither exists, stop and inform the user.
+Resolve `st-docker-run` once at the start of the workflow and use the
+resolved path for all subsequent container command invocations. Also verify
+`GH_TOKEN` is set in the environment before proceeding.
 
 ### Interaction modes
 
@@ -62,9 +78,8 @@ Each collection step uses one of two interaction modes:
 
 Do NOT write ad-hoc code (inline Python, jq pipelines, etc.) to query
 GitHub during this workflow. Every GitHub data lookup is handled by either
-a pinned `gh` command documented in this skill or a helper script in
-`$TOOLING/scripts/gh/`. If a command is not documented here, it is not
-needed.
+a pinned `gh` command documented in this skill or an `st-*` CLI command.
+If a command is not documented here, it is not needed.
 
 ## Workflow
 
@@ -75,13 +90,13 @@ needed.
 Determine the repository owner from the working directory:
 
 ```bash
-gh repo view --json owner --jq '.owner.login'
+st-docker-run -- gh repo view --json owner --jq '.owner.login'
 ```
 
 List available GitHub Projects:
 
 ```bash
-gh project list --owner <owner> \
+st-docker-run -- gh project list --owner <owner> \
   --format json \
   --jq '.projects[] | [.number, .title] | @tsv'
 ```
@@ -99,7 +114,7 @@ automatically and confirm.
 List the repositories linked to the selected project:
 
 ```bash
-"$TOOLING/scripts/gh/list-project-repos.sh" --owner <owner> --project <project_number>
+st-docker-run -- st-list-project-repos --owner <owner> --project <project_number>
 ```
 
 Output is one `owner/repo` per line. Ask the user which repository the
@@ -125,7 +140,7 @@ Ask the user for the issue type:
 After the user selects, ensure the label exists:
 
 ```bash
-"$TOOLING/scripts/gh/ensure-label.sh" --repo <target_repo> --label <label>
+st-docker-run -- st-ensure-label --repo <target_repo> --label <label>
 ```
 
 **Captures**: `label`, `title_prefix`.
@@ -244,7 +259,7 @@ After user approval, execute the following steps in order.
 **Step 1 — Create the issue.** Write the body to a temp file and create:
 
 ```bash
-gh issue create --repo <target_repo> \
+st-docker-run -- gh issue create --repo <target_repo> \
   --title "<title>" --label "<label>" \
   --body-file <tempfile>
 ```
@@ -254,7 +269,7 @@ Capture the issue URL from stdout.
 **Step 2 — Add to project.** Add the issue and capture the item ID:
 
 ```bash
-gh project item-add <project_number> \
+st-docker-run -- gh project item-add <project_number> \
   --owner <owner> --url <issue_url> \
   --format json --jq '.id'
 ```
@@ -262,7 +277,7 @@ gh project item-add <project_number> \
 **Step 3 — Set priority:**
 
 ```bash
-"$TOOLING/scripts/gh/set-project-field.sh" \
+st-docker-run -- st-set-project-field \
   --owner <owner> --project <project_number> \
   --item <item_id> --field Priority \
   --value <priority>
@@ -271,7 +286,7 @@ gh project item-add <project_number> \
 **Step 4 — Set work type:**
 
 ```bash
-"$TOOLING/scripts/gh/set-project-field.sh" \
+st-docker-run -- st-set-project-field \
   --owner <owner> --project <project_number> \
   --item <item_id> --field "Work Type" \
   --value <work_type>

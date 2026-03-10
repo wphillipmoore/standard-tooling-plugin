@@ -2,6 +2,9 @@
 # validate-on-edit.sh — PostToolUse hook for Write|Edit.
 # Dispatches per-language validation on the edited file. Auto-fixable issues
 # are fixed in place silently; unfixable issues block the agent (exit 2).
+#
+# Validation tools run inside the dev container via st-docker-run. If
+# st-docker-run is not on PATH, validation is skipped silently.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -12,6 +15,27 @@ file_path=$(echo "$input" | jq -r '.tool_input.file_path // .tool_input.file // 
 # Skip if no file path or file doesn't exist (deleted / virtual)
 if [[ -z "$file_path" || ! -f "$file_path" ]]; then
   exit 0
+fi
+
+# Validation tools live in the dev container — warn if st-docker-run is
+# not available.
+if ! command -v st-docker-run &>/dev/null; then
+  jq -n '{
+    hookSpecificOutput: {
+      hookEventName: "PostToolUse",
+      additionalContext: "WARNING: st-docker-run not found on PATH. File validation skipped. Ensure standard-tooling host venv is set up and st-docker-run is on PATH."
+    }
+  }'
+  exit 2
+fi
+
+# Convert absolute host path to repo-relative path for the container
+# (st-docker-run mounts the repo root at /workspace).
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
+if [[ -n "$repo_root" ]]; then
+  rel_path="${file_path#"$repo_root"/}"
+else
+  rel_path="$file_path"
 fi
 
 # Route by extension or path pattern to per-language validator
@@ -41,9 +65,9 @@ case "$file_path" in
     ;;
 esac
 
-# Run the validator and capture output
+# Run the validator with the repo-relative path
 errors=""
-if ! errors=$("$validator" "$file_path" 2>&1); then
+if ! errors=$("$validator" "$rel_path" 2>&1); then
   exit_code=$?
   jq -n --arg ctx "FILE VALIDATION FAILED for ${file_path}:
 ${errors}

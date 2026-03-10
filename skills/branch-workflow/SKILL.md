@@ -32,29 +32,43 @@ This skill enforces two invariants:
 
 ### Tooling
 
-Helper scripts live in the `standard-tooling` sibling repository. Resolve
-the path by checking these locations in order:
+This skill runs on the **host**. Almost all commands run inside the dev
+container via `st-docker-run`, which mounts the repo at `/workspace` and
+passes through `GH_TOKEN` and other environment variables automatically.
 
-1. `../standard-tooling` (sibling checkout — preferred)
-2. `.standard-tooling` (CI checkout)
+**Host commands** — run directly:
 
-```bash
-if [ -d "../standard-tooling" ]; then
-  TOOLING="../standard-tooling"
-elif [ -d ".standard-tooling" ]; then
-  TOOLING=".standard-tooling"
-fi
+- `git` — local git operations (checkout, branch, fetch, push)
+
+**Container commands** — run via `st-docker-run`:
+
+- `gh` — all GitHub CLI operations
+
+Search for `st-docker-run` in this order:
+
+1. `../standard-tooling/.venv-host/bin/st-docker-run` (sibling checkout
+   with host venv)
+2. `st-docker-run` on PATH (already installed)
+
+If neither is found, **abort** with a message directing the user to set up
+the host venv:
+
+```text
+st-docker-run not found. Run the following one-time setup:
+  cd ../standard-tooling
+  UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
 ```
 
-If neither exists, stop and inform the user.
+Resolve `st-docker-run` once at the start of the workflow and use the
+resolved path for all subsequent container command invocations. Also verify
+`GH_TOKEN` is set in the environment before proceeding.
 
 ### Ad-hoc code prohibition
 
 Do NOT write ad-hoc code (inline Python, jq pipelines, etc.) to query
 GitHub during this workflow. Every GitHub data lookup is handled by either
-a pinned `gh` command documented in this skill or a helper script in
-`$TOOLING/scripts/gh/`. If a command is not documented here, it is not
-needed.
+a `gh` command documented in this skill (run via `st-docker-run`) or an
+`st-*` CLI command. If a command is not documented here, it is not needed.
 
 ## When to use
 
@@ -93,7 +107,9 @@ reference. The issue is likely a project-level parent. Treat it as Form 2
 Validate the issue exists:
 
 ```bash
-gh issue view <number> --repo <owner/repo> --json number,title,state --jq '.'
+st-docker-run -- gh issue view <number> \
+  --repo <owner/repo> \
+  --json number,title,state --jq '.'
 ```
 
 **Captures**: `issue_number`, `issue_repo`, `issue_title`.
@@ -108,7 +124,7 @@ Project issue URLs do not directly encode a repo issue number. Extract the
 item ID from the URL query parameter and resolve it:
 
 ```bash
-gh api graphql -f query='
+st-docker-run -- gh api graphql -f query='
 {
   node(id: "<item_node_id>") {
     ... on ProjectV2Item {
@@ -130,7 +146,7 @@ Note: The `itemId` in the URL is a **database ID** (integer), not the
 GraphQL node ID. Convert it first:
 
 ```bash
-gh api graphql -f query='
+st-docker-run -- gh api graphql -f query='
 {
   user(login: "<owner>") {
     projectV2(number: <project_number>) {
@@ -171,7 +187,8 @@ directory:
    of the parent:
 
    ```bash
-   gh api repos/<parent_owner>/<parent_repo>/issues/<parent_number>/sub_issues \
+   st-docker-run -- gh api \
+     repos/<parent_owner>/<parent_repo>/issues/<parent_number>/sub_issues \
      --jq '.[] | select(.repository.full_name == "<current_repo>") | {number, title}'
    ```
 
@@ -180,7 +197,7 @@ directory:
 3. **If no sub-issue exists**, create one:
 
    ```bash
-   gh issue create \
+   st-docker-run -- gh issue create \
      --repo <current_repo> \
      --title "<parent_title>" \
      --body-file <tempfile>
@@ -198,19 +215,20 @@ directory:
 
    ```bash
    # Get the child issue's database ID
-   child_db_id=$(gh api \
+   child_db_id=$(st-docker-run -- gh api \
      repos/<current_owner>/<current_repo>/issues/<child_number> \
      --jq '.id')
 
    # Link to parent
-   gh api repos/<parent_owner>/<parent_repo>/issues/<parent_number>/sub_issues \
+   st-docker-run -- gh api \
+     repos/<parent_owner>/<parent_repo>/issues/<parent_number>/sub_issues \
      --method POST -F sub_issue_id="$child_db_id"
    ```
 
 5. **Add to the project**. Determine which project the parent belongs to:
 
    ```bash
-   gh api graphql -f query='
+   st-docker-run -- gh api graphql -f query='
    {
      repository(owner: "<parent_owner>", name: "<parent_repo>") {
        issue(number: <parent_number>) {
@@ -230,7 +248,7 @@ directory:
    Add the new sub-issue to the same project:
 
    ```bash
-   gh project item-add <project_number> \
+   st-docker-run -- gh project item-add <project_number> \
      --owner <owner> \
      --url <child_issue_url> \
      --format json --jq '.id'
