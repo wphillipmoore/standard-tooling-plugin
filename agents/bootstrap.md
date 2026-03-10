@@ -2,8 +2,8 @@
 name: bootstrap
 description: >-
   Session bootstrap agent. Use proactively at the start of every work session
-  to resolve standard-tooling PATH, validate the repository profile, check
-  branch state, and load context. Must run before any code changes.
+  to validate the repository profile, check branch state, verify the dev
+  container environment, and load context. Must run before any code changes.
 tools: Read, Glob, Grep, Bash
 model: haiku
 maxTurns: 15
@@ -38,23 +38,15 @@ Run `git branch --show-current` and report the current branch.
 If the branch is `main` or `develop`, report:
 **WARNING: On protected branch. Create a feature branch before making changes.**
 
-## 3. Standard Tooling PATH
+## 3. Standard Tooling CLI
 
 Check if `st-commit` is available on PATH by running `command -v st-commit`.
 
-If found, report the resolved path.
+If found, report: **st-commit: available.**
 
-If not found, search for the standard-tooling checkout:
-
-1. Check `../standard-tooling/.venv/bin/st-commit` (sibling checkout)
-2. Check `.standard-tooling/.venv/bin/st-commit` (CI checkout)
-
-Report which path was found, or **WARNING: st-commit not found** if neither
-exists. Include the PATH export command the user would need:
-
-```bash
-export PATH="../standard-tooling/.venv/bin:../standard-tooling/scripts/bin:$PATH"
-```
+If not found, report:
+**WARNING: st-commit not found. This session is not running inside the dev
+container. The `st-*` CLI tools are only available inside the container.**
 
 ## 4. Standards and Conventions
 
@@ -70,11 +62,9 @@ If not found, report:
 Run `git config core.hooksPath` and report the result.
 
 If not set or empty, report:
-**WARNING: Git hooks not configured.** Include the setup command:
-
-```bash
-git config core.hooksPath ../standard-tooling/scripts/lib/git-hooks
-```
+**WARNING: Git hooks not configured.** The hooks path should be set by the
+dev container. If running outside the container, git hooks may not be
+available.
 
 ## Status Report Format
 
@@ -86,7 +76,7 @@ Repository:    <repo name from directory>
 Profile:       <repository_type> | <branching_model> | <primary_language>
 Branch:        <current branch> [WARNING if protected]
 Validation:    <canonical_local_validation_command or "not configured">
-st-commit:     <path or "NOT FOUND">
+st-commit:     <available or "NOT FOUND">
 Standards:     <local or web fallback>
 Git hooks:     <hooks path or "NOT CONFIGURED">
 =========================

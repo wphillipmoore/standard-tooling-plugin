@@ -47,6 +47,49 @@ This skill is not applicable to application repositories.
 - `/publish minor` — Bump to the next minor version before publishing.
 - `/publish major` — Bump to the next major version before publishing.
 
+## Host vs container commands
+
+This skill runs on the **host**. Almost all commands run inside the dev
+container via `st-docker-run`, which mounts the repo at `/workspace` and
+passes through `GH_TOKEN` and other environment variables automatically.
+
+**Host commands** — run directly:
+
+- `git` — local git operations (checkout, branch, fetch, pull, push)
+
+**Container commands** — run via `st-docker-run`:
+
+- `gh` — all GitHub CLI operations
+- `st-prepare-release`, `st-commit`, `st-submit-pr`, `st-finalize-repo`
+- Validation commands (e.g. `markdownlint .`)
+
+To invoke a container command:
+
+```bash
+st-docker-run -- st-prepare-release --issue <N>
+st-docker-run -- gh issue create --repo <repo> --title "..." --body-file /workspace/tmp.md
+```
+
+### Locating st-docker-run
+
+Search for `st-docker-run` in this order:
+
+1. `../standard-tooling/.venv-host/bin/st-docker-run` (sibling checkout
+   with host venv)
+2. `st-docker-run` on PATH (already installed)
+
+If neither is found, **abort** with a message directing the user to set up
+the host venv:
+
+```text
+st-docker-run not found. Run the following one-time setup:
+  cd ../standard-tooling
+  UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
+```
+
+Resolve `st-docker-run` once during preflight and use the resolved path
+for all subsequent container command invocations.
+
 ## Preflight
 
 - Read `docs/repository-standards.md` and locate the repository profile section.
@@ -57,8 +100,10 @@ This skill is not applicable to application repositories.
   not apply.
 - Confirm you are on the `develop` branch with a clean working tree.
 - Identify the canonical validation command from the repository profile.
-- **Library-release only**: Verify `st-prepare-release` is available on PATH. If
-  missing, **abort** — standard-tooling is not configured on PATH.
+- Locate `st-docker-run` using the search algorithm above. If not found,
+  **abort** with setup instructions.
+- Verify `GH_TOKEN` is set in the environment. If not, **abort** with a
+  message directing the user to set it.
 - **Library-release only**: Read the current version from the project manifest
   and compare it to the latest `v*` tag. If the version matches an existing
   tag, **abort** — the post-publish version bump did not run and the release
@@ -110,8 +155,8 @@ improvement — surfacing failures is more valuable than completing the release.
    the issue linkage required by the standards-compliance gate. Log all
    subsequent phase completions, issues encountered, and resolutions as comments
    on this issue to maintain a complete record of the publish operation.
-3. Run `st-prepare-release --issue <N>` from the repository root on
-   `develop`, passing the tracking issue number.
+3. Run `st-docker-run -- st-prepare-release --issue <N>` from the repository
+   root on `develop`, passing the tracking issue number.
 4. The script creates a `release/<version>` branch, generates the changelog,
    pushes the branch, creates a PR to `main` (with `Ref #<N>` in the body),
    and enables auto-merge.
@@ -162,9 +207,9 @@ confirmed).
 1. Close the tracking issue with a final summary comment covering all phases.
    All issue and PR references in the summary must be full URLs (not short
    `#N` references) so they are clickable in the terminal.
-2. Run `st-finalize-repo` to return to a clean `develop` branch.
-   The script updates local `develop`, deletes merged branches, and prunes
-   stale remotes. Run final validation to confirm a clean state.
+2. Run `st-docker-run -- st-finalize-repo` to return to a clean `develop`
+   branch. The script updates local `develop`, deletes merged branches, and
+   prunes stale remotes. Run final validation to confirm a clean state.
 
 ## Docs-only mode
 
@@ -180,9 +225,9 @@ confirmed).
    [Dependency update categories](#dependency-update-categories)).
 3. Run full validation.
 4. Submit via `pr-workflow`.
-5. Run `st-finalize-repo` to return to a clean `develop` branch.
-   The script updates local `develop`, deletes merged branches, and prunes
-   stale remotes. Run final validation to confirm a clean state.
+5. Run `st-docker-run -- st-finalize-repo` to return to a clean `develop`
+   branch. The script updates local `develop`, deletes merged branches, and
+   prunes stale remotes. Run final validation to confirm a clean state.
 
 ## Dependency update categories
 
