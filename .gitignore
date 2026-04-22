@@ -7,3 +7,6 @@ Thumbs.db
 .env
 .env.*
 *.log
+
+# Parallel AI agent worktrees (see CLAUDE.md)
+.worktrees/
