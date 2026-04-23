@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+    inputs:
+      run-security:
+        type: string
+        default: 'true'
+      run-release-gates:
+        type: string
+        default: 'true'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ---------------------------------------------------------------------------
+  # Quality: shellcheck, markdownlint, mkdocs-build
+  # ---------------------------------------------------------------------------
+
+  shellcheck:
+    name: "ci: shellcheck"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Run shellcheck
+        run: |
+          files=$(find hooks/scripts -type f -name '*.sh' | sort)
+          if [ -n "$files" ]; then
+            echo "$files" | xargs shellcheck
+          else
+            echo "No shell scripts found."
+          fi
+
+  markdownlint:
+    name: "ci: markdownlint"
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/wphillipmoore/dev-python:3.14
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Mark workspace safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Run markdownlint
+        run: markdownlint 'docs/site/**/*.md' 'README.md'
+
+  mkdocs-build:
+    name: "ci: mkdocs-build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Install mkdocs-material
+        run: pip install mkdocs-material
+
+      - name: Build docs
+        run: mkdocs build --strict
+        working-directory: docs/site
+
+  # ---------------------------------------------------------------------------
+  # Security and standards (shared reusable workflow)
+  # ---------------------------------------------------------------------------
+
+  security-and-standards:
+    uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@develop
+    with:
+      language: bash
+      semgrep-language: ci
+      run-codeql: 'false'
+      run-standards: ${{ inputs.run-release-gates || 'true' }}
+      run-security: ${{ inputs.run-security || 'true' }}
+    permissions:
+      contents: read
+      security-events: write
+
+  # ---------------------------------------------------------------------------
+  # Release gates (PR only)
+  # ---------------------------------------------------------------------------
+
+  release-gates:
+    name: "release: gates"
+    if: ${{ inputs.run-release-gates != 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip on non-PR events
+        if: github.event_name != 'pull_request'
+        run: echo "Not a pull request; skipping release gates."
+
+      - name: Checkout code
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Mark workspace safe for git
+        if: github.event_name == 'pull_request'
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Version divergence gate (PRs targeting develop)
+        if: github.event_name == 'pull_request' && github.base_ref == 'develop'
+        uses: wphillipmoore/standard-actions/actions/release-gates/version-divergence@v1.1
+        with:
+          head-version-command: jq -r '.version' .claude-plugin/plugin.json
+          main-version-command: git show origin/main:.claude-plugin/plugin.json | jq -r '.version'

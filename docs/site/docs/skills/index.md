@@ -1,0 +1,179 @@
+# Skills
+
+Skills are shared workflow definitions that Claude Code loads from
+the plugin. Each skill is a directory under `skills/` containing a
+`SKILL.md` file with frontmatter and structured instructions. All
+skills are namespaced under `standard-tooling` and invoked as
+`/standard-tooling:<skill-name>`.
+
+Each entry below covers what the skill does, when to use it, and
+its current status — including any tracked work that will
+substantially change it.
+
+## Skill catalogue (at a glance)
+
+| Skill | Purpose | Status |
+|---|---|---|
+| [branch-workflow](#branch-workflow) | Ensure a correctly named branch exists for an issue | Current; worktree revision tracked in [#55](https://github.com/wphillipmoore/standard-tooling-plugin/issues/55) |
+| [pr-workflow](#pr-workflow) | Guide PR creation, submission, and finalization | Current; worktree + manual-merge revision tracked in [#56](https://github.com/wphillipmoore/standard-tooling-plugin/issues/56) |
+| [publish](#publish) | Drive library / tooling / documentation release flow | Needs review; rethink tracked in [#57](https://github.com/wphillipmoore/standard-tooling-plugin/issues/57) |
+| [project-issue](#project-issue) | Create a well-structured GitHub issue via guided questions | Current |
+| [dependency-update](#dependency-update) | Run the dependency-update workflow | Current (reviewed 2026-04-23, no changes) |
+| [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
+| [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries | Current; relationship with `soc-capture` to be clarified in [#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58) |
+
+## branch-workflow
+
+**What it does.** Ensures a correctly named feature / bugfix /
+hotfix / chore branch exists for a given issue before work starts.
+Handles project-to-repo issue resolution (when an issue lives in
+a GitHub Project on a different repo than the target), creates
+sub-issues for cross-repo work, and reuses existing branches when
+the current branch already matches.
+
+**When to use.** At the start of any work session that involves
+code changes. Typical invocation patterns: "start work on issue
+`#N`", "begin work on `<project issue URL>`", or pre-work prompts
+like `/paad:vibe` may invoke this internally.
+
+**Status.** Current. The worktree-convention revision
+(adopt the `.worktrees/issue-N-<slug>/` pattern from
+[standard-tooling#258](https://github.com/wphillipmoore/standard-tooling/issues/258))
+is tracked in
+[plugin#55](https://github.com/wphillipmoore/standard-tooling-plugin/issues/55)
+and will land as a distinct change.
+
+## pr-workflow
+
+**What it does.** Guides the full PR lifecycle: pre-submission
+validation, submission via `st-submit-pr`, merge-state monitoring,
+and finalization via `st-finalize-repo`.
+
+**When to use.** When work on a branch is complete and ready for
+review. Covers "open a PR for this branch" through "PR merged,
+clean up local state."
+
+**Status.** Current, but two recent fleet changes need to be
+folded in: the worktree convention
+([standard-tooling#258](https://github.com/wphillipmoore/standard-tooling/issues/258))
+means PR creation and finalization both happen from inside a
+worktree, and auto-merge has been disabled org-wide as of
+2026-04-22 — human review and manual merge are now the default
+instead of auto-merge-when-CI-passes. Tracked in
+[plugin#56](https://github.com/wphillipmoore/standard-tooling-plugin/issues/56).
+
+## publish
+
+**What it does.** Drives end-to-end release publishing for
+library / tooling / documentation repositories. Covers the
+multi-phase flow: prepare release branch, review + merge, confirm
+publish, post-publish version bump, dependency-consumer updates,
+and local finalization. Includes failure handling with issue
+tracking.
+
+**When to use.** When preparing and executing a versioned release
+of a repository that uses the `library-release` or
+`tagged-release` model.
+
+**Status.** Needs review. The dockerized validation model
+(everything runs via `st-docker-run`) and the recent publish-
+workflow changes in individual repos may have drifted from what
+this skill describes. Rethink tracked in
+[plugin#57](https://github.com/wphillipmoore/standard-tooling-plugin/issues/57)
+— applies lessons from the first-ever
+standard-tooling-plugin release exercise.
+
+## project-issue
+
+**What it does.** Guided issue creation that collects issue type,
+priority, work type, summary, problem/goal, acceptance criteria,
+and validation steps. Creates the issue in the target repo and
+adds it to the appropriate GitHub Project with the right field
+values set.
+
+**When to use.** When creating a new tracked issue, especially
+when it belongs on a GitHub Project board and needs standard
+fields populated.
+
+**Status.** Current.
+
+## dependency-update
+
+**What it does.** Repeatable dependency-update workflow covering
+signal collection (security alerts, audits, planned upgrades),
+updating at sources of truth, regenerating lockfiles / exports /
+generated manifests, running validation, and progressing through
+the standard PR workflow. Includes failure handling with anchored-
+dependency records for cases where a dependency must be pinned
+below the latest acceptable range.
+
+**When to use.** When updating project dependencies — whether in
+response to a CVE, a scheduled cycle, or as part of normal
+maintenance.
+
+**Status.** Current. Reviewed for currency on 2026-04-23 as part
+of [plugin#59](https://github.com/wphillipmoore/standard-tooling-plugin/issues/59);
+no changes needed. References `docs/repository/dependency-update-workflow.md`
+and sibling docs that may not exist in every consuming repo — those
+references are informational (consult if present) rather than
+required.
+
+## deprecation-triage
+
+**What it does.** Applies the deprecation-warning triage policy:
+search for an existing issue matching the warning, create a
+tracking issue if none exists using the standard template,
+attempt a code-only fix, decide fix-now vs defer-to-next-cycle,
+and document any suppression with removal criteria. Paired with
+the `detect-deprecation-warnings` PostToolUse hook.
+
+**When to use.** When a deprecation warning surfaces during test
+output, CI, or regular work. The partner hook triggers this
+flow automatically when it catches warnings.
+
+**Status.** Current. Reviewed for currency on 2026-04-23 as part
+of [plugin#59](https://github.com/wphillipmoore/standard-tooling-plugin/issues/59);
+no changes needed.
+
+## summarize
+
+**What it does.** Produces a concise, structured summary in one of
+three modes:
+
+- **decisions** — summary of decisions made during a session
+  (what, why, alternatives considered, next step)
+- **operations** — summary of operations performed (what was
+  touched, what happened, what remains)
+- **soc** — stream-of-consciousness capture for context offloading
+  between sessions (triggered by `Enter SOC` / `End SOC`)
+
+**When to use.** When the user explicitly asks for a structured
+summary, invokes SOC capture, or the skill is invoked via
+handoff protocols.
+
+**Status.** Current, with an open clarification: earlier session
+notes referred to a separate `soc-capture` concept as if it were
+distinct from the `soc` mode inside `summarize`. Whether those
+are actually the same thing — or whether `soc` should become its
+own top-level skill — is tracked in
+[plugin#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58).
+
+## How skills work — technical
+
+Each skill is a directory under `skills/` containing:
+
+- **`SKILL.md`** — required. Frontmatter with `name` and
+  `description`, followed by the skill's body (context, workflow,
+  templates, etc.).
+- Optional supporting files (templates, examples) referenced from
+  `SKILL.md`.
+
+The plugin's `skills/` directory is loaded on session start. The
+skill `name` in the frontmatter plus the plugin's namespace
+(`standard-tooling`) determines the invocation: a skill named
+`pr-workflow` in this plugin is invoked as
+`/standard-tooling:pr-workflow`.
+
+Skills are documentation-as-config, not executable scripts. They
+tell Claude Code *how* to run a workflow; Claude Code executes
+the flow using whatever tools the user has granted.

@@ -1,0 +1,38 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](https://semver.org/).
+
+## [1.3.0] - 2026-04-23
+
+### Bug fixes
+
+- use markdown-standards in validate-markdown.sh for CI parity (#14)
+- fix markdownlint and structural check failures (#16)
+- skip Cargo.toml and Cargo.lock in generic TOML validation (#18)
+- add PreToolUse hook to block bash associative arrays (#29)
+- fix marketplace.json source schema and resolve markdownlint errors (#31)
+- update skills, hooks, and bootstrap for container-first execution via st-docker-run (#37)
+
+### CI
+
+- use dev-docs container for docs CI (#27)
+
+### Documentation
+
+- cross-ref git-workflow guide and refresh hook entries (block-memory-writes removed, block-protected-branch-work now worktree-aware) (#48)
+
+### Features
+
+- add 5 core PreToolUse guardrail hooks (#1)
+- add bootstrap session-start agent (#2)
+- migrate 8 skills from standards-and-conventions (#3)
+- add 3 post-action hooks for finalization, deprecation, and stop guard (#4)
+- add self-hosted marketplace for plugin distribution (#5)
+- add MkDocs site scaffold, changelog infrastructure, and CI workflows (#7)
+- add PostToolUse file validation on Write|Edit (#12)
+- add CI workflows and rulesets (#19)
+- adopt git worktree convention for parallel AI agent development (#43)
+- make block-protected-branch-work.sh worktree-aware (opt-in via .gitignore signal) (#45)

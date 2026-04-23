@@ -1,0 +1,29 @@
+name: Documentation
+
+on:
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: "deploy: docs"
+    runs-on: ubuntu-latest
+    container: ghcr.io/wphillipmoore/dev-base:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Deploy docs
+        uses: wphillipmoore/standard-actions/actions/docs-deploy@develop
+        with:
+          version-command: jq -r '.version | split(".") | .[0:2] | join(".")' .claude-plugin/plugin.json

@@ -1,0 +1,75 @@
+{
+  "description": "Standard tooling guardrails — mechanical enforcement of workflow rules that were previously documentation-only.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-raw-git-commit.sh",
+            "statusMessage": "Checking for raw git commit..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-raw-gh-pr-create.sh",
+            "statusMessage": "Checking for raw gh pr create..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-protected-branch-work.sh",
+            "statusMessage": "Checking branch protection..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-heredoc.sh",
+            "statusMessage": "Checking for heredoc syntax..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-associative-arrays.sh",
+            "statusMessage": "Checking for bash associative arrays..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/validate-on-edit.sh",
+            "statusMessage": "Validating edited file..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/remind-finalize.sh",
+            "statusMessage": "Checking for PR submission..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-deprecation-warnings.sh",
+            "statusMessage": "Checking for deprecation warnings..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop-guard-finalization.sh",
+            "statusMessage": "Checking finalization status..."
+          }
+        ]
+      }
+    ]
+  }
+}
