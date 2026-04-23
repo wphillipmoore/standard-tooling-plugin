@@ -31,16 +31,6 @@
             "statusMessage": "Checking for bash associative arrays..."
           }
         ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-memory-writes.sh",
-            "statusMessage": "Checking for MEMORY.md writes..."
-          }
-        ]
       }
     ],
     "PostToolUse": [
