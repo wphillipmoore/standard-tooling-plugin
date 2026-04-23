@@ -38,15 +38,28 @@ Run `git branch --show-current` and report the current branch.
 If the branch is `main` or `develop`, report:
 **WARNING: On protected branch. Create a feature branch before making changes.**
 
-## 3. Standard Tooling CLI
+## 3. Host Dispatcher (st-docker-run)
 
-Check if `st-commit` is available on PATH by running `command -v st-commit`.
+Check if `st-docker-run` is available on PATH by running
+`command -v st-docker-run`.
 
-If found, report: **st-commit: available.**
+If found, report: **st-docker-run: available.**
 
-If not found, report:
-**WARNING: st-commit not found. This session is not running inside the dev
-container. The `st-*` CLI tools are only available inside the container.**
+If not found, report (and include the link verbatim so the user can
+open it):
+
+**WARNING: st-docker-run not found on PATH. This plugin's per-edit
+validation hooks will fail until it is installed. st-docker-run is the
+host-side dispatcher that runs commands inside the dev container image;
+it is delivered by the standard-tooling Python package. See the Getting
+Started guide for host venv bootstrap and PATH setup:
+<https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/getting-started.md>**
+
+This bootstrap check emits a warning (soft). Per-edit validation hooks
+treat the same missing dispatcher as a fatal error (hard) — the
+assumption is that the user has a chance to see this warning at session
+start; hooks that fire later stop quietly only after the warning has
+been ignored.
 
 ## 4. Standards and Conventions
 
@@ -76,7 +89,7 @@ Repository:    <repo name from directory>
 Profile:       <repository_type> | <branching_model> | <primary_language>
 Branch:        <current branch> [WARNING if protected]
 Validation:    <canonical_local_validation_command or "not configured">
-st-commit:     <available or "NOT FOUND">
+st-docker-run: <available or "NOT FOUND">
 Standards:     <local or web fallback>
 Git hooks:     <hooks path or "NOT CONFIGURED">
 =========================
