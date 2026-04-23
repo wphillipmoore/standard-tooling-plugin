@@ -3,8 +3,10 @@
 # Dispatches per-language validation on the edited file. Auto-fixable issues
 # are fixed in place silently; unfixable issues block the agent (exit 2).
 #
-# Validation tools run inside the dev container via st-docker-run. If
-# st-docker-run is not on PATH, validation is skipped silently.
+# Validation tools run inside the dev container via st-docker-run. Missing
+# st-docker-run is a fatal error (exit 2) with a clear install pointer —
+# validation cannot run without the dispatcher, so failing silently would
+# hide the plugin's purpose from the agent.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -17,13 +19,14 @@ if [[ -z "$file_path" || ! -f "$file_path" ]]; then
   exit 0
 fi
 
-# Validation tools live in the dev container — warn if st-docker-run is
-# not available.
-if ! command -v st-docker-run &>/dev/null; then
+# Validation tools live in the dev container. Missing st-docker-run is
+# fatal — the plugin's validation layer cannot function without the
+# dispatcher, and a silent skip would hide that from the agent.
+if ! command -v st-docker-run >/dev/null 2>&1; then
   jq -n '{
     hookSpecificOutput: {
       hookEventName: "PostToolUse",
-      additionalContext: "WARNING: st-docker-run not found on PATH. File validation skipped. Ensure standard-tooling host venv is set up and st-docker-run is on PATH."
+      additionalContext: "ERROR: st-docker-run not found on PATH. File validation cannot run.\n\nst-docker-run is the host-side dispatcher that runs commands inside the dev container image. It is delivered by the standard-tooling Python package.\n\nInstall: see the Getting Started guide for host venv bootstrap and PATH setup:\n  https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/getting-started.md"
     }
   }'
   exit 2

@@ -1,3 +1,13 @@
 default: true
 no-duplicate-heading:
   siblings_only: true
+# MD013 (line-length): exempt tables and code blocks. Wide reference
+# tables and pasted commands commonly exceed 80 columns.
+MD013:
+  line_length: 80
+  tables: false
+  code_blocks: false
+# MD060 (table-column-style): tables render correctly regardless of
+# strict column alignment; enforcing visual alignment adds maintenance
+# burden for no reader benefit.
+MD060: false
