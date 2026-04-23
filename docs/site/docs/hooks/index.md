@@ -4,6 +4,14 @@ The plugin provides PreToolUse, PostToolUse, and Stop hooks that enforce
 workflow guardrails mechanically. These replace duplicated documentation
 rules across all consuming repos.
 
+> **Looking for the overall workflow?** See
+> [`standard-tooling` → Git Workflow](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/guides/git-workflow.md)
+> for the big-picture guide covering branching, commit/PR/finalize
+> cycle, worktrees, and how these plugin hooks compose with the
+> pre-commit git hook. This page is the reference for the plugin's
+> hooks specifically; the pre-commit git hook is documented in
+> [`standard-tooling` → Git Hooks and Validation](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/git-hooks-and-validation.md).
+
 ## PreToolUse Hooks
 
 ### Bash Hooks
@@ -17,17 +25,26 @@ rules across all consuming repos.
     Enforces use of `st-submit-pr`.
 
 **block-protected-branch-work**
-:   Blocks commits on protected branches (`main`, `develop`).
+:   Blocks commits that shouldn't happen at the project root.
+    Behavior depends on whether the target repo has adopted the
+    [worktree convention](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/specs/worktree-convention.md)
+    (signal: `.worktrees/` line in the repo's `.gitignore`):
+
+    - **Adopted repo**: commits must originate from inside
+      `.worktrees/<name>/`. Any commit from the project root is
+      denied with guidance to create a worktree.
+    - **Non-adopted repo**: falls back to the legacy behavior of
+      blocking commits on `main` or `develop`.
+
+    Complements the pre-commit git hook's
+    [protected-branch check](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/git-hooks-and-validation.md#pre-commit)
+    — this hook catches the agent-tool invocation; the pre-commit
+    hook catches every `git commit` regardless of source.
 
 **block-heredoc**
-:   Blocks heredoc syntax (`<<EOF`) to prevent shell escaping
-    failures.
-
-### Write/Edit Hooks
-
-**block-memory-writes**
-:   Blocks writes to `MEMORY.md`.
-    Enforces version-controlled documentation.
+:   Blocks heredoc syntax (`<<EOF`) in CLI args to prevent shell
+    escaping failures. Route multi-line content through a temp
+    file instead (`--body-file`, `--file`, or `$(cat <path>)`).
 
 ## PostToolUse Hooks
 
