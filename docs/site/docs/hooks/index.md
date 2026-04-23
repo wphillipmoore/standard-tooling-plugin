@@ -28,14 +28,12 @@ rules across all consuming repos.
 :   Blocks commits that shouldn't happen at the project root.
     Behavior depends on whether the target repo has adopted the
     [worktree convention](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/specs/worktree-convention.md)
-    (signal: `.worktrees/` line in the repo's `.gitignore`):
-
-    - **Adopted repo**: commits must originate from inside
-      `.worktrees/<name>/`. Any commit from the project root is
-      denied with guidance to create a worktree.
-    - **Non-adopted repo**: falls back to the legacy behavior of
-      blocking commits on `main` or `develop`.
-
+    — the hook opts in when it sees a `.worktrees/` line in the
+    repo's `.gitignore`. On adopted repos, commits must originate
+    from inside `.worktrees/<name>/`; a commit initiated from the
+    project root is denied with guidance to create a worktree.
+    On non-adopted repos, the hook falls back to the legacy
+    behavior of blocking commits on `main` or `develop`.
     Complements the pre-commit git hook's
     [protected-branch check](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/git-hooks-and-validation.md#pre-commit)
     — this hook catches the agent-tool invocation; the pre-commit
