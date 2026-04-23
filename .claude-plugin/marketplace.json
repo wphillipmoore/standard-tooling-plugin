@@ -11,7 +11,8 @@
       "name": "standard-tooling",
       "source": {
         "source": "url",
-        "url": "https://github.com/wphillipmoore/standard-tooling-plugin.git"
+        "url": "https://github.com/wphillipmoore/standard-tooling-plugin.git",
+        "ref": "main"
       },
       "description": "Shared hooks, skills, agents, and commands for all managed repositories in the standard-tooling ecosystem."
     }
