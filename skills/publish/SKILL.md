@@ -12,10 +12,11 @@ description: Drive the end-to-end publish workflow for library, tooling, and doc
 - [Version override](#version-override)
 - [Failure handling](#failure-handling)
 - [Library-release mode](#library-release-mode)
+  - [Policy: agent-driven merges for release-workflow PRs](#policy-agent-driven-merges-for-release-workflow-prs)
   - [Phase 1 — Prepare release](#phase-1--prepare-release)
-  - [Phase 2 — Review and merge](#phase-2--review-and-merge)
+  - [Phase 2 — Merge release PR](#phase-2--merge-release-pr)
   - [Phase 3 — Confirm publish](#phase-3--confirm-publish)
-  - [Phase 4 — Confirm version bump](#phase-4--confirm-version-bump)
+  - [Phase 4 — Merge bump PR](#phase-4--merge-bump-pr)
   - [Phase 5 — Next-cycle dependency updates](#phase-5--next-cycle-dependency-updates)
   - [Phase 6 — Close and finalize](#phase-6--close-and-finalize)
 - [Docs-only mode](#docs-only-mode)
@@ -147,29 +148,55 @@ improvement — surfacing failures is more valuable than completing the release.
 
 ## Library-release mode
 
+### Policy: agent-driven merges for release-workflow PRs
+
+Org-wide auto-merge is disabled. The normal convention is
+"humans merge human PRs." The release workflow is the explicit
+exception: **the agent is both author and reviewer** of release-
+and-bump PRs, so the agent also merges them via
+`st-merge-when-green`. This applies to two PRs per release cycle:
+
+- The `release/<version>` PR (Phase 2 below).
+- The `chore/bump-version-<next>` PR (Phase 4 below).
+
+No other PR types are agent-merged. Feature, bugfix, and
+dependency-update PRs follow the normal human-reviews-and-merges
+flow via the `pr-workflow` skill.
+
+The release workflow is not complete until the bump PR has
+merged — that step prepares the repository for the next cycle
+and is part of this skill's responsibility.
+
 ### Phase 1 — Prepare release
 
 1. Read the current version from the project manifest.
-2. Create a GitHub issue titled `release: <version>` with a body summarizing the
-   release. This issue serves as the tracking issue for the release and provides
-   the issue linkage required by the standards-compliance gate. Log all
-   subsequent phase completions, issues encountered, and resolutions as comments
-   on this issue to maintain a complete record of the publish operation.
-3. Run `st-docker-run -- st-prepare-release --issue <N>` from the repository
-   root on `develop`, passing the tracking issue number.
-4. The script creates a `release/<version>` branch, generates the changelog,
-   pushes the branch, creates a PR to `main` (with `Ref #<N>` in the body),
-   and enables auto-merge.
-5. Confirm the release branch and PR were created successfully.
-6. Comment on the tracking issue with Phase 1 results (branch name, PR URL).
+2. Create a GitHub issue titled `release: <version>` with a body
+   summarizing the release. This issue serves as the tracking issue
+   for the release and provides the issue linkage required by the
+   standards-compliance gate. Log all subsequent phase completions,
+   issues encountered, and resolutions as comments on this issue to
+   maintain a complete record of the publish operation.
+3. Run `st-docker-run -- st-prepare-release --issue <N>` from the
+   repository root on `develop`, passing the tracking issue number.
+4. The script creates a `release/<version>` branch, generates the
+   changelog, pushes the branch, creates a PR to `main` (with
+   `Ref #<N>` in the body), and prints the PR URL. It does not
+   attempt to merge — that is Phase 2.
+5. Confirm the release branch and PR were created successfully and
+   capture the PR URL from the script's output.
+6. Comment on the tracking issue with Phase 1 results (branch name,
+   PR URL).
 
-### Phase 2 — Review and merge
+### Phase 2 — Merge release PR
 
-1. Wait for CI to validate the release branch.
-2. Confirm the PR merges into `main` via regular merge (not squash).
-3. Confirm the release branch is deleted after merge.
-4. Comment on the tracking issue with Phase 2 results (CI outcome, merge
-   confirmation).
+1. Run `st-docker-run -- st-merge-when-green <release-pr-url>`.
+   The tool polls CI and merges once all required checks pass
+   (merge-commit strategy, delete branch on merge).
+2. If any CI check fails, `st-merge-when-green` exits non-zero.
+   Follow the failure-handling procedure — do not retry or merge
+   manually.
+3. Comment on the tracking issue with Phase 2 results (CI outcome,
+   merge commit).
 
 ### Phase 3 — Confirm publish
 
@@ -181,16 +208,25 @@ Verify all publish artifacts are present:
 - Package artifact published to the registry.
 - GitHub Pages documentation deployed for the new version.
 
-Comment on the tracking issue with Phase 3 results (list of artifacts
-confirmed).
+Comment on the tracking issue with Phase 3 results (list of
+artifacts confirmed).
 
-### Phase 4 — Confirm version bump
+### Phase 4 — Merge bump PR
 
-1. Wait for the automated `chore/bump-version-<next>` PR to `develop`.
-2. Confirm the bump PR auto-merges.
-3. Update local `develop` to incorporate the merge.
-4. Comment on the tracking issue with Phase 4 results (bump PR URL, next
-   version).
+The `publish.yml` workflow's `version-bump-pr` step creates a
+`chore/bump-version-<next>` PR to `develop` but does not merge
+it. This phase drives the merge.
+
+1. Poll for the bump PR with
+   `gh pr list --head chore/bump-version-<next> --json url`.
+   Note: bump-PR creation races the tag-and-release step's other
+   work; the bump PR is typically green **before** the publish
+   workflow run completes, so this phase can run in parallel with
+   tail-end verification of Phase 3.
+2. Run `st-docker-run -- st-merge-when-green <bump-pr-url>`.
+3. If CI fails, follow the failure-handling procedure.
+4. Comment on the tracking issue with Phase 4 results (bump PR URL,
+   next version now on `develop`).
 
 ### Phase 5 — Next-cycle dependency updates
 
