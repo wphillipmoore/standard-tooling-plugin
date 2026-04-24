@@ -5,16 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.4.0] - 2026-04-24
+## [1.4.1] - 2026-04-24
 
-### Features
+### Bug fixes
 
-- rewrite publish skill for poll-and-merge; bump composite pins to v1.2; plugin 1.4.0 (#70)
+- pass version-replacement to version-bump-pr composite; bump 1.4.1
+
+### Documentation
+
+- reorder publish skill phases so bump PR merge runs in parallel with slow publish
 
 ### Release
 
 - 1.3.0 (#62)
 - 1.3.1 (#67)
+
+## [1.4.0] - 2026-04-24
+
+### Features
+
+- rewrite publish skill for poll-and-merge; bump composite pins to v1.2; plugin 1.4.0 (#70)
 
 ## [1.3.1] - 2026-04-23
 
