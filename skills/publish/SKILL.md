@@ -15,8 +15,8 @@ description: Drive the end-to-end publish workflow for library, tooling, and doc
   - [Policy: agent-driven merges for release-workflow PRs](#policy-agent-driven-merges-for-release-workflow-prs)
   - [Phase 1 — Prepare release](#phase-1--prepare-release)
   - [Phase 2 — Merge release PR](#phase-2--merge-release-pr)
-  - [Phase 3 — Confirm publish](#phase-3--confirm-publish)
-  - [Phase 4 — Merge bump PR](#phase-4--merge-bump-pr)
+  - [Phase 3 — Merge bump PR](#phase-3--merge-bump-pr)
+  - [Phase 4 — Confirm publish](#phase-4--confirm-publish)
   - [Phase 5 — Next-cycle dependency updates](#phase-5--next-cycle-dependency-updates)
   - [Phase 6 — Close and finalize](#phase-6--close-and-finalize)
 - [Docs-only mode](#docs-only-mode)
@@ -157,7 +157,7 @@ and-bump PRs, so the agent also merges them via
 `st-merge-when-green`. This applies to two PRs per release cycle:
 
 - The `release/<version>` PR (Phase 2 below).
-- The `chore/bump-version-<next>` PR (Phase 4 below).
+- The `chore/bump-version-<next>` PR (Phase 3 below).
 
 No other PR types are agent-merged. Feature, bugfix, and
 dependency-update PRs follow the normal human-reviews-and-merges
@@ -198,35 +198,48 @@ and is part of this skill's responsibility.
 3. Comment on the tracking issue with Phase 2 results (CI outcome,
    merge commit).
 
-### Phase 3 — Confirm publish
+### Phase 3 — Merge bump PR
 
-Verify all publish artifacts are present:
+Merging the release PR in Phase 2 triggered `publish.yml` on
+`main` asynchronously. Early in that workflow, the
+`version-bump-pr` composite creates a `chore/bump-version-<next>`
+PR to `develop` but does not merge it. This phase drives that
+merge in parallel with the slower async publish work (registry
+publication, docs deploy, etc.) handled in Phase 4.
 
+Order matters: the bump PR is nearly always green within a minute
+or two of the release merge, well before `publish.yml` finishes.
+Handling the fast artifact first keeps the skill from serializing
+behind external async work.
+
+1. Poll for the bump PR with
+   `gh pr list --head chore/bump-version-<next> --json url`.
+   Retry until it appears (typically within ~60 seconds of
+   Phase 2 completing).
+2. Run `st-docker-run -- st-merge-when-green <bump-pr-url>`.
+3. If CI fails, follow the failure-handling procedure — do not
+   retry or merge manually.
+4. Comment on the tracking issue with Phase 3 results (bump PR URL,
+   next version now on `develop`).
+
+### Phase 4 — Confirm publish
+
+Block until the `publish.yml` workflow on `main` completes
+successfully, then verify all publish artifacts:
+
+- Workflow run conclusion is `success`.
 - Git tag `v<version>` on `main`.
 - Develop tag `develop-v<version>` for changelog boundaries.
 - GitHub Release created.
 - Package artifact published to the registry.
 - GitHub Pages documentation deployed for the new version.
 
-Comment on the tracking issue with Phase 3 results (list of
-artifacts confirmed).
+If `publish.yml` failed, follow the failure-handling procedure.
+A failed publish after successful PR merges leaves the repository
+half-released; surface the failure and stop.
 
-### Phase 4 — Merge bump PR
-
-The `publish.yml` workflow's `version-bump-pr` step creates a
-`chore/bump-version-<next>` PR to `develop` but does not merge
-it. This phase drives the merge.
-
-1. Poll for the bump PR with
-   `gh pr list --head chore/bump-version-<next> --json url`.
-   Note: bump-PR creation races the tag-and-release step's other
-   work; the bump PR is typically green **before** the publish
-   workflow run completes, so this phase can run in parallel with
-   tail-end verification of Phase 3.
-2. Run `st-docker-run -- st-merge-when-green <bump-pr-url>`.
-3. If CI fails, follow the failure-handling procedure.
-4. Comment on the tracking issue with Phase 4 results (bump PR URL,
-   next version now on `develop`).
+Comment on the tracking issue with Phase 4 results (publish-run
+URL, list of artifacts confirmed).
 
 ### Phase 5 — Next-cycle dependency updates
 
