@@ -5,15 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-04-24
+
+### Features
+
+- rewrite publish skill for poll-and-merge; bump composite pins to v1.2; plugin 1.4.0 (#70)
+
+### Release
+
+- 1.3.0 (#62)
+- 1.3.1 (#67)
+
 ## [1.3.1] - 2026-04-23
 
 ### Bug fixes
 
 - pin consumers to main ref in marketplace.json (#65)
-
-### Release
-
-- 1.3.0 (#62)
 
 ## [1.3.0] - 2026-04-23
 
