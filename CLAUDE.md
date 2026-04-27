@@ -153,3 +153,12 @@ markdownlint .
 
 **NEVER use raw `git commit`** — always use `st-commit`.
 **NEVER use raw `gh pr create`** — always use `st-submit-pr`.
+
+## Refreshing the plugin locally
+
+When the user asks how to refresh / update / reinstall this plugin
+after a new release, the canonical sequence is in the README's
+[Update section](README.md#update). Do **not** guess or improvise —
+the sequence is three steps (`marketplace update` → `update` →
+`reload-plugins`) and each is required. The non-interactive CLI
+form is `claude plugin update <plugin>@<marketplace>`.
