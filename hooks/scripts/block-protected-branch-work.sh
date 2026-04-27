@@ -26,7 +26,14 @@ if ! echo "$command" | grep -qE '(^|[;&|]\s*)(git\s+commit|st-commit)(\s|$)'; th
   exit 0
 fi
 
-cwd=$(echo "$input" | jq -r '.tool_input.cwd // "."')
+# Resolve the bash session's working directory. Two fields can carry it:
+#   .tool_input.cwd  — set when the Bash tool call passes cwd explicitly.
+#   .cwd             — top-level hook input field; the session CWD that
+#                      Claude Code itself reports.
+# The current Bash tool typically populates the top-level `.cwd` only,
+# so falling back to "." (the previous behavior) misclassified every
+# commit as originating from the project root.
+cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
 
 # Determine the effective directory where the commit will actually run.
 # Handles two common patterns that redirect the commit to a different dir:
@@ -55,12 +62,25 @@ if [ -z "$toplevel" ]; then
   exit 0
 fi
 
+# When the commit is being made from inside a git worktree (not the main
+# checkout), `--show-toplevel` returns the worktree's own root, not the
+# main repo root. The worktree-convention check below needs the MAIN
+# repo root so it can match against `<main-root>/.worktrees/*`.
+# `--git-common-dir` points at the shared `.git` regardless of which
+# worktree we're in; its parent is the main repo root.
+git_common=$(git -C "$effective_dir" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || echo "")
+if [ -n "$git_common" ]; then
+  main_root=$(dirname "$git_common")
+else
+  main_root="$toplevel"
+fi
+
 # Has this repo adopted the worktree convention? Signal: a line reading
 # exactly `.worktrees/` in the repo-root .gitignore.
-if [ -f "$toplevel/.gitignore" ] && grep -qxF '.worktrees/' "$toplevel/.gitignore" 2>/dev/null; then
-  # Enforce: commit must originate from inside $toplevel/.worktrees/*.
+if [ -f "$main_root/.gitignore" ] && grep -qxF '.worktrees/' "$main_root/.gitignore" 2>/dev/null; then
+  # Enforce: commit must originate from inside $main_root/.worktrees/*.
   case "$effective_dir" in
-    "$toplevel"/.worktrees/*)
+    "$main_root"/.worktrees/*)
       exit 0
       ;;
     *)
