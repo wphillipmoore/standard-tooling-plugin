@@ -50,46 +50,89 @@ This skill is not applicable to application repositories.
 
 ## Host vs container commands
 
-This skill runs on the **host**. Almost all commands run inside the dev
-container via `st-docker-run`, which mounts the repo at `/workspace` and
-passes through `GH_TOKEN` and other environment variables automatically.
+Tools fall into two families with different runtime locations. Honor the
+split — silently bypassing it (or silently containerizing tools that
+belong on the host) is what produced
+[issue #96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96):
+47 days of agents short-circuiting "container-first" guidance for release
+tools, hiding three layered infrastructure failures until the first
+agent followed the rule verbatim.
 
-**Host commands** — run directly:
+### Host commands — run directly
+
+The release / git workflow family. These need the host's SSH agent for
+`git push`, the host's git config, the host's `gh` token store, and
+one-shot invocation patterns where container startup is wasted overhead.
+Containerizing them required adding `openssh-client` and mounting
+`~/.ssh` and would still need agent-socket passthrough — every layer is
+a seam that can break.
 
 - `git` — local git operations (checkout, branch, fetch, pull, push)
+- `gh` — all GitHub CLI operations (issue/PR/release management)
+- `st-prepare-release`, `st-commit`, `st-submit-pr`, `st-finalize-repo`,
+  `st-merge-when-green` — release/PR lifecycle drivers
+- `st-docker-run` itself — the dispatcher that runs container commands
+- `git-cliff` — changelog generation
 
-**Container commands** — run via `st-docker-run`:
+### Container commands — run via `st-docker-run --`
 
-- `gh` — all GitHub CLI operations
-- `st-prepare-release`, `st-commit`, `st-submit-pr`, `st-finalize-repo`
-- Validation commands (e.g. `markdownlint .`)
+The language toolchain validators. These are the heavyweight per-language
+tools whose maintenance burden on macOS is exactly what `st-docker-run`
+exists to eliminate, and whose per-edit invocation amortizes container
+caching.
 
-To invoke a container command:
+- `ruff`, `mypy`, `ty`, `black`, `isort` (Python)
+- `markdownlint`, `st-markdown-standards` (Markdown)
+- `yamllint`, `actionlint` (YAML / GitHub workflows)
+- `shellcheck`, `shfmt` (shell)
+- Any other linter / formatter / type-checker pinned to a project's
+  toolchain
+
+### Test for borderline cases
+
+If you're unsure where a tool belongs: is it primarily a wrapper around a
+containerized language toolchain (→ container), or a thin Python/shell
+driver around git/gh/SSH-using operations (→ host)? `st-validate-local`
+itself is a host orchestrator that dispatches its inner validators into
+the container — host driver, container payloads.
+
+### Examples
+
+Host (no wrapping):
 
 ```bash
-st-docker-run -- st-prepare-release --issue <N>
-st-docker-run -- gh issue create --repo <repo> --title "..." --body-file /workspace/tmp.md
+st-prepare-release --issue <N>
+gh issue create --title "..." --body-file /tmp/release-notes.md
 ```
 
-### Locating st-docker-run
+Container (always via `st-docker-run --`):
 
-Search for `st-docker-run` in this order:
+```bash
+st-docker-run -- ruff check .
+st-docker-run -- markdownlint .
+```
 
-1. `../standard-tooling/.venv-host/bin/st-docker-run` (sibling checkout
-   with host venv)
-2. `st-docker-run` on PATH (already installed)
+### Locating standard-tooling host commands
 
-If neither is found, **abort** with a message directing the user to set up
-the host venv:
+The host commands above are installed by the standard-tooling host venv.
+Search for them in this order:
+
+1. `../standard-tooling/.venv-host/bin/<command>` (sibling checkout with
+   host venv) — preferred
+2. `<command>` on PATH (already installed system-wide)
+
+If a required command is missing, **abort** with a message directing the
+user to set up the host venv:
 
 ```text
-st-docker-run not found. Run the following one-time setup:
+standard-tooling host commands not found. Run the following one-time setup:
   cd ../standard-tooling
   UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
 ```
 
-Resolve `st-docker-run` once during preflight and use the resolved path
-for all subsequent container command invocations.
+Resolve once during preflight and use the resolved paths for all
+subsequent invocations. Do not mix host-PATH and venv-bin invocations
+within a single session.
 
 ## Preflight
 
@@ -101,8 +144,11 @@ for all subsequent container command invocations.
   not apply.
 - Confirm you are on the `develop` branch with a clean working tree.
 - Identify the canonical validation command from the repository profile.
-- Locate `st-docker-run` using the search algorithm above. If not found,
-  **abort** with setup instructions.
+- Locate the standard-tooling host commands using the search algorithm
+  above (at minimum: `st-prepare-release`, `st-merge-when-green`,
+  `st-finalize-repo`, `st-commit`, `st-submit-pr`, `gh`, `git-cliff`,
+  `st-docker-run`). If any required command is missing, **abort** with
+  setup instructions.
 - Verify `GH_TOKEN` is set in the environment. If not, **abort** with a
   message directing the user to set it.
 - **Library-release only**: Read the current version from the project manifest
@@ -176,7 +222,7 @@ and is part of this skill's responsibility.
    standards-compliance gate. Log all subsequent phase completions,
    issues encountered, and resolutions as comments on this issue to
    maintain a complete record of the publish operation.
-3. Run `st-docker-run -- st-prepare-release --issue <N>` from the
+3. Run `st-prepare-release --issue <N>` from the
    repository root on `develop`, passing the tracking issue number.
 4. The script creates a `release/<version>` branch, generates the
    changelog, pushes the branch, creates a PR to `main` (with
@@ -189,7 +235,7 @@ and is part of this skill's responsibility.
 
 ### Phase 2 — Merge release PR
 
-1. Run `st-docker-run -- st-merge-when-green <release-pr-url>`.
+1. Run `st-merge-when-green <release-pr-url>`.
    The tool polls CI and merges once all required checks pass
    (merge-commit strategy, delete branch on merge).
 2. If any CI check fails, `st-merge-when-green` exits non-zero.
@@ -216,7 +262,7 @@ behind external async work.
    `gh pr list --head chore/bump-version-<next> --json url`.
    Retry until it appears (typically within ~60 seconds of
    Phase 2 completing).
-2. Run `st-docker-run -- st-merge-when-green <bump-pr-url>`.
+2. Run `st-merge-when-green <bump-pr-url>`.
 3. If CI fails, follow the failure-handling procedure — do not
    retry or merge manually.
 4. Comment on the tracking issue with Phase 3 results (bump PR URL,
@@ -256,7 +302,7 @@ URL, list of artifacts confirmed).
 1. Close the tracking issue with a final summary comment covering all phases.
    All issue and PR references in the summary must be full URLs (not short
    `#N` references) so they are clickable in the terminal.
-2. Run `st-docker-run -- st-finalize-repo` to return to a clean `develop`
+2. Run `st-finalize-repo` to return to a clean `develop`
    branch. The script updates local `develop`, deletes merged branches, and
    prunes stale remotes. Run final validation to confirm a clean state.
 
@@ -274,7 +320,7 @@ URL, list of artifacts confirmed).
    [Dependency update categories](#dependency-update-categories)).
 3. Run full validation.
 4. Submit via `pr-workflow`.
-5. Run `st-docker-run -- st-finalize-repo` to return to a clean `develop`
+5. Run `st-finalize-repo` to return to a clean `develop`
    branch. The script updates local `develop`, deletes merged branches, and
    prunes stale remotes. Run final validation to confirm a clean state.
 
