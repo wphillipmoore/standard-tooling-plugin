@@ -111,38 +111,6 @@ the code belongs inside the container, not in host scripts.
 *(none currently active — `block-memory-writes` was removed on
 2026-04-23 when feedback memory was re-enabled fleet-wide.)*
 
-## PostToolUse Hooks — Write|Edit
-
-### validate-on-edit
-
-**What.** Dispatches per-language validation on every edited file.
-Routes by extension (`.py`, `.sh`, `.md`, `.yml`/`.yaml`) or
-heuristic (`scripts/bin/*`, `scripts/lib/*`, shebangs) to one of the
-per-language scripts: `validate-markdown.sh`, `validate-python.sh`,
-`validate-shell.sh`, or `validate-yaml.sh`. Each per-language
-validator auto-fixes what it can in place, then reports any
-remaining issues via `additionalContext` for the agent to address.
-
-**Why.** Catching lint failures at edit time — not at commit time or
-CI time — keeps feedback loops short. The auto-fix-then-check split
-means agents spend zero effort on fixable issues (formatting,
-import ordering, trailing whitespace) and focus only on what needs
-human-or-agent judgment.
-
-**Dependency.** All validators run inside the dev container via
-`st-docker-run`. Missing `st-docker-run` on PATH is a **fatal
-error** (exit 2) with an install pointer — the validation layer
-cannot function without the dispatcher, and a silent skip would
-hide that from the agent. See
-[Getting Started](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/getting-started.md)
-for the host venv bootstrap and PATH setup.
-
-**Alternative.** Don't route around a validation failure — fix the
-issue the validator reported. If a validator is reporting a false
-positive, update the validator's underlying tool config (e.g.,
-`.ruff.toml`, `.markdownlint.yaml`) rather than disabling the
-hook.
-
 ## PostToolUse Hooks — Bash
 
 ### remind-finalize
@@ -192,6 +160,41 @@ infinite loops — if a Stop hook has already continued the session
 once, it won't block again. In normal use: finalize the PR before
 trying to end the session, or (if the PR has legitimately not
 merged yet) check with `gh pr view` and wait.
+
+## Hooks deliberately not provided
+
+### Per-edit linting / validation
+
+The plugin does **not** ship a `PostToolUse` Write|Edit hook that
+runs ruff / mypy / yamllint / markdownlint / shellcheck on each
+edited file. An earlier version did (`validate-on-edit.sh` plus
+per-language `validate-*.sh` scripts); it was removed in
+[#91](https://github.com/wphillipmoore/standard-tooling-plugin/issues/91).
+
+**Why removed.** Each per-edit invocation paid the dev-container
+startup cost (1–3 s on typical hardware) for one file's worth of
+work — five container starts for a single Python edit (`ruff check
+--fix`, `ruff format`, `ruff check`, `mypy`, `ty check`). Across a
+session with dozens of edits, that's minutes of wall-clock overhead
+per session, every session. The same checks already run in two
+cheaper places: `st-validate-local` covers them in a single
+container start before PR submission, and CI re-runs them on every
+PR. The per-edit layer was the third copy with the worst
+cost-per-value ratio.
+
+**What replaces it.** Nothing per-edit. Validation runs at PR time
+via [`st-validate-local`](https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/reference/dev/validate-local.md),
+which is the documented "only validation command" per every
+consuming repo's CLAUDE.md. The
+[`block-raw-git-commit`](#block-raw-git-commit) PreToolUse hook
+already enforces commits going through `st-commit`, and `st-commit`
+runs the pre-commit git hook — so there's a hard gate between
+"edits land" and "edits ship."
+
+**Don't re-add this.** A future contributor noticing the absence
+should resist the impulse to re-add per-edit validation as a
+"missing feature." The cost-per-value math doesn't work; the gap
+is intentional.
 
 ## How hooks work — technical
 
