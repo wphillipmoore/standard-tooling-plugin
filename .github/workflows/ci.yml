@@ -79,7 +79,7 @@ jobs:
   # ---------------------------------------------------------------------------
 
   security-and-standards:
-    uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@develop
+    uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@v1.3
     with:
       language: bash
       semgrep-language: ci
