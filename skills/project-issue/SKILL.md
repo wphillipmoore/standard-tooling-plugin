@@ -90,13 +90,13 @@ If a command is not documented here, it is not needed.
 Determine the repository owner from the working directory:
 
 ```bash
-st-docker-run -- gh repo view --json owner --jq '.owner.login'
+gh repo view --json owner --jq '.owner.login'
 ```
 
 List available GitHub Projects:
 
 ```bash
-st-docker-run -- gh project list --owner <owner> \
+gh project list --owner <owner> \
   --format json \
   --jq '.projects[] | [.number, .title] | @tsv'
 ```
@@ -114,7 +114,7 @@ automatically and confirm.
 List the repositories linked to the selected project:
 
 ```bash
-st-docker-run -- st-list-project-repos --owner <owner> --project <project_number>
+st-list-project-repos --owner <owner> --project <project_number>
 ```
 
 Output is one `owner/repo` per line. Ask the user which repository the
@@ -140,7 +140,7 @@ Ask the user for the issue type:
 After the user selects, ensure the label exists:
 
 ```bash
-st-docker-run -- st-ensure-label --repo <target_repo> --label <label>
+st-ensure-label --repo <target_repo> --label <label>
 ```
 
 **Captures**: `label`, `title_prefix`.
@@ -259,7 +259,7 @@ After user approval, execute the following steps in order.
 **Step 1 — Create the issue.** Write the body to a temp file and create:
 
 ```bash
-st-docker-run -- gh issue create --repo <target_repo> \
+gh issue create --repo <target_repo> \
   --title "<title>" --label "<label>" \
   --body-file <tempfile>
 ```
@@ -269,7 +269,7 @@ Capture the issue URL from stdout.
 **Step 2 — Add to project.** Add the issue and capture the item ID:
 
 ```bash
-st-docker-run -- gh project item-add <project_number> \
+gh project item-add <project_number> \
   --owner <owner> --url <issue_url> \
   --format json --jq '.id'
 ```
@@ -277,7 +277,7 @@ st-docker-run -- gh project item-add <project_number> \
 **Step 3 — Set priority:**
 
 ```bash
-st-docker-run -- st-set-project-field \
+st-set-project-field \
   --owner <owner> --project <project_number> \
   --item <item_id> --field Priority \
   --value <priority>
@@ -286,7 +286,7 @@ st-docker-run -- st-set-project-field \
 **Step 4 — Set work type:**
 
 ```bash
-st-docker-run -- st-set-project-field \
+st-set-project-field \
   --owner <owner> --project <project_number> \
   --item <item_id> --field "Work Type" \
   --value <work_type>

@@ -48,18 +48,19 @@ If found, report: **st-docker-run: available.**
 If not found, report (and include the link verbatim so the user can
 open it):
 
-**WARNING: st-docker-run not found on PATH. This plugin's per-edit
-validation hooks will fail until it is installed. st-docker-run is the
-host-side dispatcher that runs commands inside the dev container image;
-it is delivered by the standard-tooling Python package. See the Getting
-Started guide for host venv bootstrap and PATH setup:
+**WARNING: st-docker-run not found on PATH. Validator dispatch
+(`st-validate-local`, dependency-update validation passes, and any
+container-routed lint/typecheck calls) will fail until it is installed.
+st-docker-run is the host-side dispatcher that runs language toolchain
+validators inside the dev container image; it is delivered by the
+standard-tooling Python package. See the Getting Started guide for host
+venv bootstrap and PATH setup:
 <https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/getting-started.md>**
 
-This bootstrap check emits a warning (soft). Per-edit validation hooks
-treat the same missing dispatcher as a fatal error (hard) — the
-assumption is that the user has a chance to see this warning at session
-start; hooks that fire later stop quietly only after the warning has
-been ignored.
+Release-cycle tools (`st-commit`, `st-submit-pr`, `st-prepare-release`,
+`st-finalize-repo`, `st-merge-when-green`) run on the host and do not
+need st-docker-run — see [issue #96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96)
+for the host-vs-container split.
 
 ## 4. Standards and Conventions
 

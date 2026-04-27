@@ -59,11 +59,10 @@ The short version: add this to your repo's `.claude/settings.json`:
 Commit that file. Claude Code discovers and enables the plugin on
 session start.
 
-**Prerequisite:** this plugin assumes `st-docker-run` is available on
-your host PATH — several hooks depend on it. Install steps are in
-the standard-tooling Getting Started guide above; missing
-`st-docker-run` produces a clear fatal error from the validation
-hooks on first edit.
+**Prerequisite:** this plugin's commands and skills shell out to
+`st-commit`, `st-submit-pr`, `st-finalize-repo`, and friends from
+the standard-tooling Python package. Install those on your host
+PATH first — see the Getting Started guide above.
 
 ## Component inventory
 
@@ -79,7 +78,6 @@ mechanically.
 | `block-protected-branch-work` | PreToolUse/Bash | Blocks commits from outside `.worktrees/*` on repos that adopt the worktree convention; otherwise blocks commits on `develop`/`main` |
 | `block-heredoc` | PreToolUse/Bash | Blocks `<<EOF` in CLI args (use `--body-file` or `$(cat <file>)`) |
 | `block-associative-arrays` | PreToolUse/Bash | Blocks bash 4+ associative arrays — host scripts must run on macOS bash 3.2 |
-| `validate-on-edit` | PostToolUse/Write\|Edit | Dispatches per-language validators (`validate-markdown.sh`, `validate-python.sh`, `validate-shell.sh`, `validate-yaml.sh`) inside the dev container |
 | `remind-finalize` | PostToolUse/Bash | After `st-submit-pr`, reminds to run `st-finalize-repo` |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
 | `stop-guard-finalization` | Stop | Blocks session exit if a PR was submitted but not finalized |
