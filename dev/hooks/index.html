@@ -782,30 +782,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#posttooluse-hooks-writeedit" class="md-nav__link">
-    <span class="md-ellipsis">
-      PostToolUse Hooks — Write|Edit
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="PostToolUse Hooks — Write|Edit">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#validate-on-edit" class="md-nav__link">
-    <span class="md-ellipsis">
-      validate-on-edit
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#posttooluse-hooks-bash" class="md-nav__link">
     <span class="md-ellipsis">
       PostToolUse Hooks — Bash
@@ -852,6 +828,30 @@
   <a href="#stop-guard-finalization" class="md-nav__link">
     <span class="md-ellipsis">
       stop-guard-finalization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hooks-deliberately-not-provided" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hooks deliberately not provided
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hooks deliberately not provided">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#per-edit-linting-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Per-edit linting / validation
     </span>
   </a>
   
@@ -1052,30 +1052,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#posttooluse-hooks-writeedit" class="md-nav__link">
-    <span class="md-ellipsis">
-      PostToolUse Hooks — Write|Edit
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="PostToolUse Hooks — Write|Edit">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#validate-on-edit" class="md-nav__link">
-    <span class="md-ellipsis">
-      validate-on-edit
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#posttooluse-hooks-bash" class="md-nav__link">
     <span class="md-ellipsis">
       PostToolUse Hooks — Bash
@@ -1122,6 +1098,30 @@
   <a href="#stop-guard-finalization" class="md-nav__link">
     <span class="md-ellipsis">
       stop-guard-finalization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hooks-deliberately-not-provided" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hooks deliberately not provided
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Hooks deliberately not provided">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#per-edit-linting-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Per-edit linting / validation
     </span>
   </a>
   
@@ -1277,32 +1277,6 @@ the code belongs inside the container, not in host scripts.</p>
 <h2 id="pretooluse-hooks-writeedit">PreToolUse Hooks — Write|Edit<a class="headerlink" href="#pretooluse-hooks-writeedit" title="Permanent link">&para;</a></h2>
 <p><em>(none currently active — <code>block-memory-writes</code> was removed on
 2026-04-23 when feedback memory was re-enabled fleet-wide.)</em></p>
-<h2 id="posttooluse-hooks-writeedit">PostToolUse Hooks — Write|Edit<a class="headerlink" href="#posttooluse-hooks-writeedit" title="Permanent link">&para;</a></h2>
-<h3 id="validate-on-edit">validate-on-edit<a class="headerlink" href="#validate-on-edit" title="Permanent link">&para;</a></h3>
-<p><strong>What.</strong> Dispatches per-language validation on every edited file.
-Routes by extension (<code>.py</code>, <code>.sh</code>, <code>.md</code>, <code>.yml</code>/<code>.yaml</code>) or
-heuristic (<code>scripts/bin/*</code>, <code>scripts/lib/*</code>, shebangs) to one of the
-per-language scripts: <code>validate-markdown.sh</code>, <code>validate-python.sh</code>,
-<code>validate-shell.sh</code>, or <code>validate-yaml.sh</code>. Each per-language
-validator auto-fixes what it can in place, then reports any
-remaining issues via <code>additionalContext</code> for the agent to address.</p>
-<p><strong>Why.</strong> Catching lint failures at edit time — not at commit time or
-CI time — keeps feedback loops short. The auto-fix-then-check split
-means agents spend zero effort on fixable issues (formatting,
-import ordering, trailing whitespace) and focus only on what needs
-human-or-agent judgment.</p>
-<p><strong>Dependency.</strong> All validators run inside the dev container via
-<code>st-docker-run</code>. Missing <code>st-docker-run</code> on PATH is a <strong>fatal
-error</strong> (exit 2) with an install pointer — the validation layer
-cannot function without the dispatcher, and a silent skip would
-hide that from the agent. See
-<a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/getting-started.md">Getting Started</a>
-for the host venv bootstrap and PATH setup.</p>
-<p><strong>Alternative.</strong> Don't route around a validation failure — fix the
-issue the validator reported. If a validator is reporting a false
-positive, update the validator's underlying tool config (e.g.,
-<code>.ruff.toml</code>, <code>.markdownlint.yaml</code>) rather than disabling the
-hook.</p>
 <h2 id="posttooluse-hooks-bash">PostToolUse Hooks — Bash<a class="headerlink" href="#posttooluse-hooks-bash" title="Permanent link">&para;</a></h2>
 <h3 id="remind-finalize">remind-finalize<a class="headerlink" href="#remind-finalize" title="Permanent link">&para;</a></h3>
 <p><strong>What.</strong> After a successful <code>st-submit-pr</code> run, injects a reminder
@@ -1339,6 +1313,35 @@ infinite loops — if a Stop hook has already continued the session
 once, it won't block again. In normal use: finalize the PR before
 trying to end the session, or (if the PR has legitimately not
 merged yet) check with <code>gh pr view</code> and wait.</p>
+<h2 id="hooks-deliberately-not-provided">Hooks deliberately not provided<a class="headerlink" href="#hooks-deliberately-not-provided" title="Permanent link">&para;</a></h2>
+<h3 id="per-edit-linting-validation">Per-edit linting / validation<a class="headerlink" href="#per-edit-linting-validation" title="Permanent link">&para;</a></h3>
+<p>The plugin does <strong>not</strong> ship a <code>PostToolUse</code> Write|Edit hook that
+runs ruff / mypy / yamllint / markdownlint / shellcheck on each
+edited file. An earlier version did (<code>validate-on-edit.sh</code> plus
+per-language <code>validate-*.sh</code> scripts); it was removed in
+<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/91">#91</a>.</p>
+<p><strong>Why removed.</strong> Each per-edit invocation paid the dev-container
+startup cost (1–3 s on typical hardware) for one file's worth of
+work — five container starts for a single Python edit (<code>ruff check
+--fix</code>, <code>ruff format</code>, <code>ruff check</code>, <code>mypy</code>, <code>ty check</code>). Across a
+session with dozens of edits, that's minutes of wall-clock overhead
+per session, every session. The same checks already run in two
+cheaper places: <code>st-validate-local</code> covers them in a single
+container start before PR submission, and CI re-runs them on every
+PR. The per-edit layer was the third copy with the worst
+cost-per-value ratio.</p>
+<p><strong>What replaces it.</strong> Nothing per-edit. Validation runs at PR time
+via <a href="https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/reference/dev/validate-local.md"><code>st-validate-local</code></a>,
+which is the documented "only validation command" per every
+consuming repo's CLAUDE.md. The
+<a href="#block-raw-git-commit"><code>block-raw-git-commit</code></a> PreToolUse hook
+already enforces commits going through <code>st-commit</code>, and <code>st-commit</code>
+runs the pre-commit git hook — so there's a hard gate between
+"edits land" and "edits ship."</p>
+<p><strong>Don't re-add this.</strong> A future contributor noticing the absence
+should resist the impulse to re-add per-edit validation as a
+"missing feature." The cost-per-value math doesn't work; the gap
+is intentional.</p>
 <h2 id="how-hooks-work-technical">How hooks work — technical<a class="headerlink" href="#how-hooks-work-technical" title="Permanent link">&para;</a></h2>
 <p>Hooks are defined in <code>hooks/hooks.json</code> and implemented as shell
 scripts in <code>hooks/scripts/</code>. Each hook receives the tool input as
