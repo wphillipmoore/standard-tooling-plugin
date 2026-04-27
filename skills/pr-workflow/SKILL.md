@@ -91,10 +91,12 @@ original event payload. Push a new commit to trigger a fresh workflow run.
 
 ## Finalization
 
-After the PR merges, run `st-docker-run -- st-finalize-repo` from the
-repository root. The tool switches to the target branch, fast-forward pulls
-from origin, deletes merged local branches, and prunes stale remotes. If
-`st-docker-run` is not available, perform the steps manually:
+After the PR merges, run `st-finalize-repo` from the repository root.
+The tool switches to the target branch, fast-forward pulls from origin,
+deletes merged local branches, and prunes stale remotes. `st-finalize-repo`
+is a host command — see [issue #96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96)
+for the host-vs-container split rationale. If it is not available,
+perform the steps manually:
 
 1. Switch to the target branch and pull latest from origin.
 2. Delete the local feature branch.

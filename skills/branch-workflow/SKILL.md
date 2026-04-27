@@ -107,7 +107,7 @@ reference. The issue is likely a project-level parent. Treat it as Form 2
 Validate the issue exists:
 
 ```bash
-st-docker-run -- gh issue view <number> \
+gh issue view <number> \
   --repo <owner/repo> \
   --json number,title,state --jq '.'
 ```
@@ -124,7 +124,7 @@ Project issue URLs do not directly encode a repo issue number. Extract the
 item ID from the URL query parameter and resolve it:
 
 ```bash
-st-docker-run -- gh api graphql -f query='
+gh api graphql -f query='
 {
   node(id: "<item_node_id>") {
     ... on ProjectV2Item {
@@ -146,7 +146,7 @@ Note: The `itemId` in the URL is a **database ID** (integer), not the
 GraphQL node ID. Convert it first:
 
 ```bash
-st-docker-run -- gh api graphql -f query='
+gh api graphql -f query='
 {
   user(login: "<owner>") {
     projectV2(number: <project_number>) {
@@ -187,7 +187,7 @@ directory:
    of the parent:
 
    ```bash
-   st-docker-run -- gh api \
+   gh api \
      repos/<parent_owner>/<parent_repo>/issues/<parent_number>/sub_issues \
      --jq '.[] | select(.repository.full_name == "<current_repo>") | {number, title}'
    ```
@@ -197,7 +197,7 @@ directory:
 3. **If no sub-issue exists**, create one:
 
    ```bash
-   st-docker-run -- gh issue create \
+   gh issue create \
      --repo <current_repo> \
      --title "<parent_title>" \
      --body-file <tempfile>
@@ -215,12 +215,12 @@ directory:
 
    ```bash
    # Get the child issue's database ID
-   child_db_id=$(st-docker-run -- gh api \
+   child_db_id=$(gh api \
      repos/<current_owner>/<current_repo>/issues/<child_number> \
      --jq '.id')
 
    # Link to parent
-   st-docker-run -- gh api \
+   gh api \
      repos/<parent_owner>/<parent_repo>/issues/<parent_number>/sub_issues \
      --method POST -F sub_issue_id="$child_db_id"
    ```
@@ -228,7 +228,7 @@ directory:
 5. **Add to the project**. Determine which project the parent belongs to:
 
    ```bash
-   st-docker-run -- gh api graphql -f query='
+   gh api graphql -f query='
    {
      repository(owner: "<parent_owner>", name: "<parent_repo>") {
        issue(number: <parent_number>) {
@@ -248,7 +248,7 @@ directory:
    Add the new sub-issue to the same project:
 
    ```bash
-   st-docker-run -- gh project item-add <project_number> \
+   gh project item-add <project_number> \
      --owner <owner> \
      --url <child_issue_url> \
      --format json --jq '.id'
