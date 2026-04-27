@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.3] - 2026-04-27
+
+### Bug fixes
+
+- resolve session cwd and main repo root for worktree commits
+
+### Documentation
+
+- split tool routing: release/git tools on host, validators in container
+
+### Features
+
+- remove per-edit validate-* hooks; rely on st-validate-local at PR time
+
 ## [1.4.1] - 2026-04-24
 
 ### Bug fixes
