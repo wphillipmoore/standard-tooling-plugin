@@ -58,6 +58,10 @@ for all subsequent container command invocations.
 
 ## Preflight
 
+- Confirm a worktree+branch exists for the issue you're working on.
+  If not, follow
+  [`docs/development/starting-work-on-an-issue.md`](../../docs/development/starting-work-on-an-issue.md)
+  before proceeding.
 - Confirm you are working on a short-lived branch per branching rules.
 - If no primary issue exists, create one immediately using best-effort
   assumptions and note them in the issue body. Do not ask for an issue number

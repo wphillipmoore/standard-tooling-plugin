@@ -117,9 +117,20 @@ the result is a non-worktree branch — incompatible with how
 parallel work has to flow under the worktree convention. Cold-call
 needs the worktree-aware flow before this is fully runnable.
 
-**Status: MAJOR REWRITE.**
+**Status (audit): MAJOR REWRITE.**
 
-**Folds in:** [#55](https://github.com/wphillipmoore/standard-tooling-plugin/issues/55).
+**Updated decision (post-audit, 2026-04-27): ELIMINATED.** The
+user pushed back on whether this skill earns its independent
+existence — it was rarely invoked as a slash-command, and its
+substantive content is mostly agent-instruction reference. The
+skill has been removed; the substance now lives at
+[`docs/development/starting-work-on-an-issue.md`](starting-work-on-an-issue.md),
+referenced from `CLAUDE.md` and `pr-workflow`'s preflight. Catalog
+gets one smaller; the agent reference lives where it's
+consulted.
+
+**Resolved:**
+[#55](https://github.com/wphillipmoore/standard-tooling-plugin/issues/55).
 
 ### pr-workflow
 
@@ -303,15 +314,15 @@ cadence that some changes don't need). The PAAD `vibe` and
 
 ### Gap 2 — A1→B1 chaining
 
-`project-issue` ends with "the issue exists." `branch-workflow`
-starts with "give me an issue." There's no automatic hand-off; a
-user creating an issue and immediately wanting to start work has to
-invoke two skills.
+`project-issue` ends with "the issue exists." Starting work on
+that issue now requires the user to follow
+[`docs/development/starting-work-on-an-issue.md`](starting-work-on-an-issue.md)
+(the doc that replaced the former `branch-workflow` skill). There's
+no automatic hand-off.
 
 **Recommendation:** add an explicit "next step" pointer in
-`project-issue` that names `branch-workflow` and shows the
-invocation. Don't auto-chain; the user might be filing for the
-backlog, not for immediate work.
+`project-issue` that links to that doc. Don't auto-chain; the user
+might be filing for the backlog, not for immediate work.
 
 ### Gap 3 — Pre-flight DRY
 
@@ -347,8 +358,9 @@ appropriate here.
 ### Gap 6 — Bootstrap → first-action chain
 
 `agents/bootstrap` runs at session start (preflight, PATH check,
-warnings). It doesn't suggest "now invoke `branch-workflow` to set
-up your worktree" even when an issue is in scope.
+warnings). It doesn't suggest "now follow
+`docs/development/starting-work-on-an-issue.md` to set up your
+worktree" even when an issue is in scope.
 
 **Recommendation:** add an explicit suggestion in bootstrap when
 the user's first message references an issue. Out of scope for the
@@ -360,23 +372,25 @@ issue.
 Recommended sequence. Each step is a focused PR closing one or
 more existing issues and referencing #114.
 
-### 1. `branch-workflow` rewrite (closes #55)
+### 1. ~~`branch-workflow` rewrite~~ → eliminate `branch-workflow`, extract to doc (closes #55) — DONE
 
-Foundation for the work cycle. Must come first because
-`pr-workflow` rewrites depend on it.
+**Status update (post-audit, 2026-04-27): completed.** After
+discussion the user pushed back on whether `branch-workflow`
+deserved its own skill. It was rarely invoked as a slash-command;
+its substance is mostly agent-instruction reference. The skill was
+removed; the substance now lives at
+[`docs/development/starting-work-on-an-issue.md`](starting-work-on-an-issue.md),
+referenced from `CLAUDE.md` and `pr-workflow`'s preflight.
 
-Scope:
-
-- Add worktree-convention awareness: `git worktree add` instead of
-  `git checkout -b`; the worktree is named per the convention.
-- Update host/container framing intro.
-- Update existing-branch detection to also detect existing worktree
-  for the same issue.
-- Keep the cross-repo / sub-issue logic intact.
+This unblocks step 2 — `pr-workflow` no longer waits on a
+`branch-workflow` rewrite to land first.
 
 ### 2. `pr-workflow` rewrite (closes #56, #85)
 
-Directly downstream from `branch-workflow`.
+Now the foundation for the work cycle's submit phase, since
+`branch-workflow` no longer exists. References the new
+`starting-work-on-an-issue.md` doc in its preflight (already done
+as part of step 1's PR).
 
 Scope:
 

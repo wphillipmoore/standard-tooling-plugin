@@ -156,7 +156,6 @@ Shared workflow skills, invoked as `/standard-tooling:<name>`.
 
 | Skill | Purpose |
 |---|---|
-| `branch-workflow` | Resolve an issue, ensure a correctly-named branch exists |
 | `pr-workflow` | Guide PR creation, submission, and finalization |
 | `publish` | Drive library/tooling/documentation release flow |
 | `project-issue` | Create structured GitHub issues via guided questions |

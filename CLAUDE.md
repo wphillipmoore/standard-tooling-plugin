@@ -76,6 +76,22 @@ Rules for this session:
 
 All fields are required.
 
+## Starting work on an issue
+
+When the user references a GitHub issue and wants work to begin on
+it, follow the procedure in
+[`docs/development/starting-work-on-an-issue.md`](docs/development/starting-work-on-an-issue.md).
+It covers: resolving project / cross-repo / repo-local issue
+inputs to a repo-local issue number, sub-issue creation when work
+spans repos, existing-worktree and existing-remote-branch
+detection, and the canonical `git worktree add` invocation that
+honors the worktree convention.
+
+This replaces the former `branch-workflow` skill. The substance is
+the same; the format is now agent-instruction documentation rather
+than a slash-command, since the procedure was rarely invoked
+cold and is most useful as a reference at the moment work begins.
+
 ## Shell command policy
 
 **Do NOT use heredocs** (`<<EOF` / `<<'EOF'`) for multi-line arguments to CLI
