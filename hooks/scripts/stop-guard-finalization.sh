@@ -2,9 +2,21 @@
 # stop-guard-finalization.sh — Stop hook.
 # Prevents Claude from stopping if a PR was submitted but st-finalize-repo
 # was not run in this session. Checks the transcript for evidence.
+#
+# Gated on managed-repo detection (#87): no-op in repos that lack
+# either docs/repository-standards.md or st-config.yaml. See
+# hooks/scripts/lib/managed-repo-check.sh.
 set -euo pipefail
 
 input=$(cat)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/managed-repo-check.sh"
+
+if ! is_managed_repo "$PWD"; then
+  exit 0
+fi
+
 stop_hook_active=$(echo "$input" | jq -r '.stop_hook_active // false')
 transcript_path=$(echo "$input" | jq -r '.transcript_path // ""')
 

@@ -1,9 +1,24 @@
 #!/usr/bin/env bash
 # block-raw-git-commit.sh — PreToolUse hook for Bash.
 # Blocks raw 'git commit' commands. Use st-commit instead.
+#
+# Gated on managed-repo detection (#87): no-op in repos that lack
+# either docs/repository-standards.md or st-config.yaml. See
+# hooks/scripts/lib/managed-repo-check.sh.
 set -euo pipefail
 
-command=$(jq -r '.tool_input.command' < /dev/stdin)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/lib/managed-repo-check.sh"
+
+input=$(cat)
+cwd=$(echo "$input" | jq -r '.tool_input.cwd // .cwd // "."')
+
+if ! is_managed_repo "$cwd"; then
+  exit 0
+fi
+
+command=$(echo "$input" | jq -r '.tool_input.command')
 
 # Match git commit but not st-commit or git commit-related subcommands
 # that aren't actual commits (e.g., git commit-tree, git commit-graph).

@@ -127,7 +127,14 @@ Sourced from the official Claude Code documentation:
 ### Hooks
 
 PreToolUse, PostToolUse, and Stop hooks that enforce guardrails
-mechanically.
+mechanically. Every hook below **except `block-heredoc`** is
+gated on a managed-repo check: a repo must contain either
+`docs/repository-standards.md` or `st-config.yaml` at its root for
+the hook to fire. In repos without either marker, the gated hooks
+short-circuit to a no-op so the plugin doesn't interfere with
+ad-hoc git work in unrelated repositories. See the
+[hooks reference](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/docs/site/docs/hooks/index.md#managed-repo-gating)
+for the rationale.
 
 | Hook | Matcher | Purpose |
 |---|---|---|
