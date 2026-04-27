@@ -8,6 +8,7 @@ in every Claude Code session.
 
 - [What this plugin does](#what-this-plugin-does)
 - [Install](#install)
+- [Update](#update)
 - [Component inventory](#component-inventory)
 - [Plugin namespace](#plugin-namespace)
 - [Related repositories](#related-repositories)
@@ -64,12 +65,76 @@ session start.
 the standard-tooling Python package. Install those on your host
 PATH first — see the Getting Started guide above.
 
+## Update
+
+After a new release ships, refresh the local install with this
+three-step sequence. Each step is required — none of them are
+implied by the others.
+
+```text
+/plugin marketplace update standard-tooling-marketplace
+/plugin update standard-tooling@standard-tooling-marketplace
+/reload-plugins
+```
+
+What each step does:
+
+1. **`/plugin marketplace update <marketplace>`** — refreshes the
+   marketplace index only. It tells Claude Code that a new version
+   exists; it does **not** download the new version.
+2. **`/plugin update <plugin>@<marketplace>`** — installs the new
+   version into the local cache at
+   `~/.claude/plugins/cache/<plugin-id>/<version>/`. The previous
+   version stays on disk for 7 days as a grace window for
+   concurrent sessions, then is removed automatically.
+3. **`/reload-plugins`** — applies the new skills / hooks / agents
+   to the **current** Claude Code session without restarting.
+   Without this, the running session keeps using the old in-memory
+   plugin state.
+
+### Non-interactive form
+
+For scripts and one-liners (e.g., `claude` invocations from a
+deploy hook), the same install-side action runs as:
+
+```bash
+claude plugin update standard-tooling@standard-tooling-marketplace
+```
+
+After running it, any **new** Claude Code session you start picks
+up the new version automatically. Existing sessions still need
+`/reload-plugins`.
+
+### Verify the update
+
+```bash
+ls -1 ~/.claude/plugins/cache/standard-tooling-marketplace/standard-tooling/
+```
+
+You should see one directory per cached version. The newest
+version should match the latest tag on
+[GitHub Releases](https://github.com/wphillipmoore/standard-tooling-plugin/releases).
+
+### References
+
+Sourced from the official Claude Code documentation:
+
+- [Plugins reference — CLI commands](https://code.claude.com/docs/en/plugins-reference.md)
+- [Discover plugins — Apply changes without restarting](https://code.claude.com/docs/en/discover-plugins.md)
+
 ## Component inventory
 
 ### Hooks
 
 PreToolUse, PostToolUse, and Stop hooks that enforce guardrails
-mechanically.
+mechanically. Every hook below **except `block-heredoc`** is
+gated on a managed-repo check: a repo must contain either
+`docs/repository-standards.md` or `st-config.yaml` at its root for
+the hook to fire. In repos without either marker, the gated hooks
+short-circuit to a no-op so the plugin doesn't interfere with
+ad-hoc git work in unrelated repositories. See the
+[hooks reference](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/docs/site/docs/hooks/index.md#managed-repo-gating)
+for the rationale.
 
 | Hook | Matcher | Purpose |
 |---|---|---|

@@ -16,6 +16,30 @@ alike routinely drift from when enforcement is prose-only.
 Each entry below covers what the hook catches, why it exists, and how
 to achieve the intent correctly when the hook blocks you.
 
+## Managed-repo gating
+
+Every hook below **except `block-heredoc`** is gated on a
+managed-repo check. A repo is "managed" when either of these marker
+files exists at the repo root:
+
+- `docs/repository-standards.md` — the existing per-repo config
+- `st-config.yaml` — the future single-file config (transition target;
+  both are accepted during migration)
+
+When neither marker is present, the gated hooks short-circuit to a
+no-op so the plugin doesn't interfere with ad-hoc git work in
+unrelated repositories. Detection is a pure-shell walk up from the
+bash session's CWD looking for either marker, terminating at a
+`.git` boundary or the filesystem root. No `git` subprocess; the
+gate's overhead is a handful of `stat()` calls.
+
+`block-heredoc` is intentionally **not** gated — heredoc syntax in
+CLI invocations breaks unpredictably regardless of which repo
+you're in, so the rule is universal.
+
+See [issue #87](https://github.com/wphillipmoore/standard-tooling-plugin/issues/87)
+for the rationale.
+
 ## PreToolUse Hooks — Bash
 
 ### block-raw-git-commit
