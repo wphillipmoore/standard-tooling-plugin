@@ -794,15 +794,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#branch-workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      branch-workflow
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#pr-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       pr-workflow
@@ -931,15 +922,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#branch-workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      branch-workflow
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#pr-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       pr-workflow
@@ -1038,11 +1020,6 @@ substantially change it.</p>
 </thead>
 <tbody>
 <tr>
-<td><a href="#branch-workflow">branch-workflow</a></td>
-<td>Ensure a correctly named branch exists for an issue</td>
-<td>Current; worktree revision tracked in <a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/55">#55</a></td>
-</tr>
-<tr>
 <td><a href="#pr-workflow">pr-workflow</a></td>
 <td>Guide PR creation, submission, and finalization</td>
 <td>Current; worktree + manual-merge revision tracked in <a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/56">#56</a></td>
@@ -1074,23 +1051,6 @@ substantially change it.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="branch-workflow">branch-workflow<a class="headerlink" href="#branch-workflow" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Ensures a correctly named feature / bugfix /
-hotfix / chore branch exists for a given issue before work starts.
-Handles project-to-repo issue resolution (when an issue lives in
-a GitHub Project on a different repo than the target), creates
-sub-issues for cross-repo work, and reuses existing branches when
-the current branch already matches.</p>
-<p><strong>When to use.</strong> At the start of any work session that involves
-code changes. Typical invocation patterns: "start work on issue
-<code>#N</code>", "begin work on <code>&lt;project issue URL&gt;</code>", or pre-work prompts
-like <code>/paad:vibe</code> may invoke this internally.</p>
-<p><strong>Status.</strong> Current. The worktree-convention revision
-(adopt the <code>.worktrees/issue-N-&lt;slug&gt;/</code> pattern from
-<a href="https://github.com/wphillipmoore/standard-tooling/issues/258">standard-tooling#258</a>)
-is tracked in
-<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/55">plugin#55</a>
-and will land as a distinct change.</p>
 <h2 id="pr-workflow">pr-workflow<a class="headerlink" href="#pr-workflow" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Guides the full PR lifecycle: pre-submission
 validation, submission via <code>st-submit-pr</code>, merge-state monitoring,
