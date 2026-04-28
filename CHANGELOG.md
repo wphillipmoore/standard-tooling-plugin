@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.9] - 2026-04-28
+
+### Bug fixes
+
+- strengthen issue-closure step in pr-workflow so agents stop skipping it
+
 ## [1.4.8] - 2026-04-28
 
 ### Bug fixes
