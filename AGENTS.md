@@ -27,10 +27,10 @@ exception and stop.
 
 ## Shared Skills
 
-Replace `<standards-repo-path>` with the resolved local path when available.
-
-- Load all skills from: `<standards-repo-path>/skills/**/SKILL.md`
-- Treat every skill found under that directory as available and active.
+Skills are delivered by the `standard-tooling` plugin (this repo) via
+the Claude Code plugin system. Do **not** load skills from
+`standards-and-conventions` — that repo's `skills/` directory contains
+pre-migration copies that are stale or eliminated.
 
 ## Local Overrides
 
