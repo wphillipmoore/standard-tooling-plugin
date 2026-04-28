@@ -411,8 +411,9 @@ the bookkeeping is still done.
 The release artifacts are published, but **consumers haven't
 picked them up yet.** Every Claude Code session that has this
 plugin (or any standard-tooling-distributed plugin) installed
-needs an explicit local refresh — neither `docker run` nor
-`/plugin marketplace update` auto-pulls fresh content. The agent
+needs an explicit local refresh — `/plugin marketplace update`
+downloads the new version but the running session keeps using the
+old in-memory state until `/reload-plugins` is run. The agent
 producing the release is responsible for surfacing the refresh
 step explicitly to the user. Listing artifacts and stopping is
 not the end of the cycle; saying "v\<version> shipped, now run
@@ -423,7 +424,6 @@ repo (`standard-tooling-plugin`):
 
 ```text
 /plugin marketplace update standard-tooling-marketplace
-/plugin update standard-tooling@standard-tooling-marketplace
 /reload-plugins
 ```
 
