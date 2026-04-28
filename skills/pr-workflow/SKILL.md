@@ -188,26 +188,39 @@ verify the develop pull and merged-branch deletion succeeded
 manually with `git log --oneline -3` and `git worktree list`. Do
 not force-remove sibling worktrees.
 
-### Verify docs deploy
+### Verify post-merge async workflows
 
-If the repo has a `docs.yml` workflow (or equivalent) that
-deploys the dev docs site on push to `develop`, verify it
-succeeded for the merge commit. The run is asynchronous; it
-typically completes within 30–60 seconds of the merge.
+A PR is not "done" until every async workflow triggered by the
+merge has succeeded. The repository's `docs/repository-standards.md`
+lists the post-merge async workflows in its "Post-merge async
+workflows" section. Verify each one.
 
-```bash
-gh run list --workflow docs.yml --branch develop --limit 1 \
-  --json conclusion,status,url --jq '.[0]'
-```
+For each workflow in the table:
 
-- If `status == "completed" && conclusion == "success"`: pass.
-- If still in progress: wait briefly (`gh run watch --exit-status <run-id>`).
-- If failed: surface to the user. A failed docs deploy after a
-  merged PR means the dev docs site is stale; this is the same
-  silent-failure class as a release with broken docs.
+1. **Identify the run.** Poll until a run for the merge commit
+   appears (typically under 60 seconds):
 
-If the repo has no `docs.yml` (or the merged PR didn't touch
-docs), skip this step.
+   ```bash
+   gh run list --workflow <workflow>.yml --branch develop \
+     --limit 1 --json conclusion,status,url --jq '.[0]'
+   ```
+
+2. **Wait for completion.** If still in progress:
+
+   ```bash
+   gh run watch --exit-status <run-id>
+   ```
+
+3. **Evaluate the result.**
+   - `conclusion == "success"`: pass. Move to the next workflow.
+   - `conclusion == "failure"`: **surface to the user immediately.**
+     Report the workflow name, run URL, and failing step. Do not
+     auto-recover or retry — a failed post-merge workflow means
+     the downstream artifact (docs site, container image, etc.)
+     is stale until the failure is resolved.
+
+If the repository profile lists no post-merge async workflows,
+skip this step.
 
 This concludes the work cycle.
 
