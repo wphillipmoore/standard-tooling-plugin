@@ -161,9 +161,18 @@ have an agent enable auto-merge — directly violating the current
 "humans merge" policy. Cannot be cold-invoked without an immediate
 correction from the user.
 
-**Status: MAJOR REWRITE.**
+**Status (audit): MAJOR REWRITE.**
 
-**Folds in:**
+**Status (post-audit): COMPLETE.** Rewritten in this PR series
+(step 2 of the attack order). New scope: submit + wait for CI
+green + hand off to user; finalization is a "after the merge"
+follow-on triggered by the user's merge confirmation. The
+obsolete `stop-guard-finalization.sh` Stop hook (which would
+have fired on every correct exit under the new posture) was
+deleted as part of the same change. The catalog still contains
+`pr-workflow`; only its scope shifted.
+
+**Resolved:**
 [#56](https://github.com/wphillipmoore/standard-tooling-plugin/issues/56),
 [#85](https://github.com/wphillipmoore/standard-tooling-plugin/issues/85).
 
@@ -385,25 +394,24 @@ referenced from `CLAUDE.md` and `pr-workflow`'s preflight.
 This unblocks step 2 — `pr-workflow` no longer waits on a
 `branch-workflow` rewrite to land first.
 
-### 2. `pr-workflow` rewrite (closes #56, #85)
+### 2. `pr-workflow` rewrite (closes #56, #85) — DONE
 
-Now the foundation for the work cycle's submit phase, since
-`branch-workflow` no longer exists. References the new
-`starting-work-on-an-issue.md` doc in its preflight (already done
-as part of step 1's PR).
+**Status update (post-audit, 2026-04-28): completed.** Skill
+rewritten end-to-end. New scope: submit via `st-submit-pr` from
+inside the worktree, wait for CI green via `gh pr checks --watch`,
+fix agent-fixable failures and re-poll, hand off to the user when
+green, finalize via `st-finalize-repo` only after the user
+reports the merge.
 
-Scope:
+The obsolete `stop-guard-finalization.sh` Stop hook was deleted
+in the same PR (it would have fired on every correct exit under
+the new posture, blocking the desired hand-off behavior).
 
-- Remove "enable auto-merge" — replace with explicit
-  `st-submit-pr` invocation, then explicit "humans review and
-  merge feature/bugfix PRs."
-- Reference `st-merge-when-green` only as the documented exception
-  for release PRs (and link to the `publish` skill).
-- Add CI-green-wait gating (#85): the skill should not return to
-  the user "PR submitted, done" without naming the next signal
-  to watch for.
-- Worktree-aware finalization.
-- Update host/container framing intro.
+Removed: "enable auto-merge" wording, in-session-mandatory
+finalization, outdated host/container framing intro. Added:
+explicit "humans review and merge feature/bugfix PRs" policy,
+CI-green-wait per #85, worktree-aware finalization, pointer to
+`starting-work-on-an-issue.md` from the preflight.
 
 ### 3. `publish` skill patches (closes #83, #84, #105)
 

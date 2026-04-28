@@ -14,7 +14,7 @@ substantially change it.
 
 | Skill | Purpose | Status |
 |---|---|---|
-| [pr-workflow](#pr-workflow) | Guide PR creation, submission, and finalization | Current; worktree + manual-merge revision tracked in [#56](https://github.com/wphillipmoore/standard-tooling-plugin/issues/56) |
+| [pr-workflow](#pr-workflow) | Submit a PR, wait for CI green, hand off to user; finalize after merge | Current |
 | [publish](#publish) | Drive library / tooling / documentation release flow | Needs review; rethink tracked in [#57](https://github.com/wphillipmoore/standard-tooling-plugin/issues/57) |
 | [project-issue](#project-issue) | Create a well-structured GitHub issue via guided questions | Current |
 | [dependency-update](#dependency-update) | Run the dependency-update workflow | Current (reviewed 2026-04-23, no changes) |
@@ -23,22 +23,22 @@ substantially change it.
 
 ## pr-workflow
 
-**What it does.** Guides the full PR lifecycle: pre-submission
-validation, submission via `st-submit-pr`, merge-state monitoring,
-and finalization via `st-finalize-repo`.
+**What it does.** Submits a PR via `st-submit-pr` from inside the
+issue's worktree, waits for CI to go green, fixes any agent-fixable
+red checks, and hands off to the user for review and merge. After
+the user reports the merge, runs `st-finalize-repo` from the
+worktree to clean up local state.
 
 **When to use.** When work on a branch is complete and ready for
 review. Covers "open a PR for this branch" through "PR merged,
-clean up local state."
+clean up local state" — but the agent stops between submission
+and merge; humans review and merge feature/bugfix PRs.
 
-**Status.** Current, but two recent fleet changes need to be
-folded in: the worktree convention
-([standard-tooling#258](https://github.com/wphillipmoore/standard-tooling/issues/258))
-means PR creation and finalization both happen from inside a
-worktree, and auto-merge has been disabled org-wide as of
-2026-04-22 — human review and manual merge are now the default
-instead of auto-merge-when-CI-passes. Tracked in
-[plugin#56](https://github.com/wphillipmoore/standard-tooling-plugin/issues/56).
+**Status.** Current. Reflects the worktree convention and the
+fleet-wide "humans review human PRs" posture as of 2026-04-22.
+The release-workflow exception (agent merges release PRs via
+`st-merge-when-green`) lives in the
+[`publish` skill](#publish), not here.
 
 ## publish
 
