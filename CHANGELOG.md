@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.6] - 2026-04-28
+
+### Bug fixes
+
+- shorten mkdocs.yml site_description and drop stale commands reference
+
+### Documentation
+
+- align docs tree with post-audit codebase state
+
 ## [1.4.5] - 2026-04-28
 
 ### Documentation

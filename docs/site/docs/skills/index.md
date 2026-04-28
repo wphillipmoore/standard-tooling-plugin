@@ -15,9 +15,9 @@ substantially change it.
 | Skill | Purpose | Status |
 |---|---|---|
 | [pr-workflow](#pr-workflow) | Submit a PR, wait for CI green, hand off to user; finalize after merge | Current |
-| [publish](#publish) | Drive library / tooling / documentation release flow | Needs review; rethink tracked in [#57](https://github.com/wphillipmoore/standard-tooling-plugin/issues/57) |
+| [publish](#publish) | Drive library / tooling / documentation release flow (Phases 1–7) | Current |
 | [project-issue](#project-issue) | Create a well-structured GitHub issue via guided questions | Current |
-| [dependency-update](#dependency-update) | Run the dependency-update workflow | Current (reviewed 2026-04-23, no changes) |
+| [dependency-update](#dependency-update) | Run the dependency-update workflow | Current |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 
@@ -53,25 +53,21 @@ tracking.
 of a repository that uses the `library-release` or
 `tagged-release` model.
 
-**Status.** Needs review. The dockerized validation model
-(everything runs via `st-docker-run`) and the recent publish-
-workflow changes in individual repos may have drifted from what
-this skill describes. Rethink tracked in
-[plugin#57](https://github.com/wphillipmoore/standard-tooling-plugin/issues/57)
-— applies lessons from the first-ever
-standard-tooling-plugin release exercise.
+**Status.** Current. Reflects the seven-phase release flow as of
+v1.4.5: Phase 4 verifies both `publish.yml` and `docs.yml`
+(#84); Phase 6 closes the tracking issue with a summary (#83);
+Phase 7 surfaces the consumer-refresh sequence (#105). The
+host-vs-container split is documented in the skill's own
+reference section.
 
 ## project-issue
 
 **What it does.** Guided issue creation that collects issue type,
-priority, work type, summary, problem/goal, acceptance criteria,
-and validation steps. Creates the issue in the target repo and
-adds it to the appropriate GitHub Project with the right field
-values set.
+summary, problem/goal, acceptance criteria, and validation steps.
+Creates the issue in the target repo with a label.
 
-**When to use.** When creating a new tracked issue, especially
-when it belongs on a GitHub Project board and needs standard
-fields populated.
+**When to use.** When creating a new tracked issue that needs
+standard fields populated consistently.
 
 **Status.** Current.
 
@@ -89,12 +85,13 @@ below the latest acceptable range.
 response to a CVE, a scheduled cycle, or as part of normal
 maintenance.
 
-**Status.** Current. Reviewed for currency on 2026-04-23 as part
-of [plugin#59](https://github.com/wphillipmoore/standard-tooling-plugin/issues/59);
-no changes needed. References `docs/repository/dependency-update-workflow.md`
-and sibling docs that may not exist in every consuming repo — those
-references are informational (consult if present) rather than
-required.
+**Status.** Current. Rewritten as part of the skills audit
+([#114](https://github.com/wphillipmoore/standard-tooling-plugin/issues/114))
+with concrete per-category commands (Python deps via `uv lock`,
+CI action pins, runtime versions, doc toolchain, linters, build
+tools), `st-validate-local` as the canonical validation step,
+structured failure handling via anchored dependency records, and
+anchor review as a first-class section.
 
 ## deprecation-triage
 

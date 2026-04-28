@@ -1,6 +1,6 @@
 # Hooks
 
-The plugin provides PreToolUse, PostToolUse, and Stop hooks that enforce
+The plugin provides PreToolUse and PostToolUse hooks that enforce
 workflow guardrails mechanically. These replace duplicated documentation
 rules across all consuming repos — rules that humans and agents
 alike routinely drift from when enforcement is prose-only.

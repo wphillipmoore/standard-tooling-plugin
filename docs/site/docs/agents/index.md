@@ -21,8 +21,8 @@ code changes are made.
 2. **Branch State** — reports the current branch and warns if on a protected
    branch (`main` or `develop`)
 
-3. **Standard Tooling CLI** — verifies `st-commit` is available on PATH
-   (expected inside the dev container)
+3. **Host Dispatcher** — verifies `st-docker-run` is available on PATH
+   (the host-side dispatcher for container-routed validation)
 
 4. **Standards and Conventions** — checks if the standards repo is available
    locally at `../standards-and-conventions`
@@ -39,7 +39,7 @@ Repository:    <repo name>
 Profile:       <repository_type> | <branching_model> | <primary_language>
 Branch:        <current branch> [WARNING if protected]
 Validation:    <validation command or "not configured">
-st-commit:     <available or "NOT FOUND">
+st-docker-run: <available or "NOT FOUND">
 Standards:     <local or web fallback>
 Git hooks:     <hooks path or "NOT CONFIGURED">
 =========================

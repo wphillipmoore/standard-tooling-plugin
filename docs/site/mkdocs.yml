@@ -1,5 +1,7 @@
 site_name: Standard Tooling Plugin
-site_description: Claude Code plugin delivering shared hooks, skills, agents, and commands for the standard-tooling ecosystem
+site_description: >-
+  Claude Code plugin delivering shared hooks, skills, and agents
+  for the standard-tooling ecosystem
 repo_url: https://github.com/wphillipmoore/standard-tooling-plugin
 repo_name: wphillipmoore/standard-tooling-plugin
 
