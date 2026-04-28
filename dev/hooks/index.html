@@ -885,6 +885,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#block-autoclose-linkage" class="md-nav__link">
+    <span class="md-ellipsis">
+      block-autoclose-linkage
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1153,6 +1162,15 @@
   <a href="#enforce-host-container-split" class="md-nav__link">
     <span class="md-ellipsis">
       enforce-host-container-split
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#block-autoclose-linkage" class="md-nav__link">
+    <span class="md-ellipsis">
+      block-autoclose-linkage
     </span>
   </a>
   
@@ -1427,6 +1445,22 @@ directly (drop the <code>st-docker-run --</code> prefix). For warned
 commands: wrap the container tool in <code>st-docker-run --</code>. See the
 <a href="https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands"><code>publish</code> skill's host-vs-container section</a>
 for the canonical split and rationale.</p>
+<h3 id="block-autoclose-linkage">block-autoclose-linkage<a class="headerlink" href="#block-autoclose-linkage" title="Permanent link">&para;</a></h3>
+<p><strong>What.</strong> Denies <code>st-submit-pr</code> invocations that pass <code>--linkage
+Fixes</code>, <code>--linkage Closes</code>, or <code>--linkage Resolves</code>.</p>
+<p><strong>Why.</strong> These keywords auto-close the linked issue when the PR
+merges. Our workflow has a mandatory post-merge finalization phase
+(<code>st-finalize-repo</code>) that reconciles local state — an issue closed
+at merge time signals "done" while the local environment is stale.
+Using <code>Ref</code> linkage keeps the issue open until finalization
+confirms the work cycle is complete, at which point the agent
+closes the issue explicitly.</p>
+<p><strong>Alternative.</strong> Use <code>--linkage Ref</code> (or omit <code>--linkage</code> — <code>Ref</code>
+is the intended default once <code>st-submit-pr</code> is updated in
+<code>standard-tooling</code>). After <code>st-finalize-repo</code> succeeds, close the
+issue with <code>gh issue close &lt;N&gt;</code>. The
+<a href="../skills/#pr-workflow"><code>pr-workflow</code> skill</a>'s "Close the
+issue" step documents this flow.</p>
 <h2 id="pretooluse-hooks-writeedit">PreToolUse Hooks — Write|Edit<a class="headerlink" href="#pretooluse-hooks-writeedit" title="Permanent link">&para;</a></h2>
 <p><em>(none currently active — <code>block-memory-writes</code> was removed on
 2026-04-23 when feedback memory was re-enabled fleet-wide.)</em></p>
