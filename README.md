@@ -12,7 +12,7 @@ in every Claude Code session.
 - [Component inventory](#component-inventory)
 - [Plugin namespace](#plugin-namespace)
 - [Related repositories](#related-repositories)
-- [Development](#development)
+- [Development and deployment](#development-and-deployment)
 
 ## What this plugin does
 
@@ -191,18 +191,96 @@ Example: `/standard-tooling:pr-workflow`.
 - [`standard-actions`](https://github.com/wphillipmoore/standard-actions)
   — Shared GitHub Actions composite actions consumed by CI.
 
-## Development
+## Development and deployment
 
-Contributors working on the plugin itself can load it directly from
-the source tree to avoid the marketplace round-trip:
+This section covers contributing to the plugin itself — how to set
+up a working environment, ship a change, and complete the
+post-publish hand-off. Distinct from the [Install](#install) and
+[Update](#update) sections, which cover how a *consumer* of the
+plugin uses it. The two roles have different obligations.
+
+### Set up a worktree
+
+Sessions on this repo always start at the project root
+(`~/dev/github/standard-tooling-plugin/`), never inside a
+worktree. Each in-flight issue gets its own worktree under
+`.worktrees/issue-<N>-<slug>/` on a `feature/<N>-<slug>` branch.
+The full procedure (issue resolution, sub-issue creation,
+worktree+branch creation, agent prompt template) lives at
+[`docs/development/starting-work-on-an-issue.md`](docs/development/starting-work-on-an-issue.md).
+
+The worktree convention is enforced by the
+`block-protected-branch-work` hook: commits originating from
+outside `.worktrees/*/` are denied.
+
+### Ship a change
+
+Use the [`pr-workflow` skill](skills/pr-workflow/SKILL.md) to
+submit, wait for CI green, and hand off:
+
+```text
+/standard-tooling:pr-workflow
+```
+
+The agent submits via `st-submit-pr`, waits for CI to go green,
+fixes agent-fixable failures, and hands off to you for review and
+merge. Auto-merge is disabled fleet-wide; you review and merge
+feature/bugfix PRs manually. After you report the merge, the
+agent runs `st-finalize-repo` from inside the worktree.
+
+### Cut a release
+
+Use the [`publish` skill](skills/publish/SKILL.md):
+
+```text
+/standard-tooling:publish
+```
+
+The skill drives Phases 1–7: prepare release, merge release PR
+via `st-merge-when-green` (the documented exception to the
+"humans review human PRs" policy — release PRs are
+agent-authored and agent-merged), merge the post-publish bump
+PR, confirm both `publish.yml` and `docs.yml` succeeded on
+`main`, optionally do dependency updates, close the tracking
+issue with a summary, finalize, and surface the consumer-refresh
+sequence.
+
+### Post-publish hand-off (Phase 7)
+
+**A release is not concluded until consumers have refreshed.**
+After `publish.yml` and `docs.yml` succeed, every Claude Code
+session that has this plugin installed needs to run:
+
+```text
+/plugin marketplace update standard-tooling-marketplace
+/plugin update standard-tooling@standard-tooling-marketplace
+/reload-plugins
+```
+
+The agent producing the release surfaces this sequence in its
+hand-off message. The user runs it (in this session, or in any
+new session that wants the new plugin behavior). Without the
+refresh, hooks and skills stay on the previously-cached version
+and the release is invisible to running sessions.
+
+This is the user-facing
+[Update](#update) sequence, surfaced from the producer side at
+the moment of release rather than left to the user to remember.
+
+### Develop against the source tree
+
+When iterating on hooks or skills before release, load the plugin
+directly from the source tree to avoid the marketplace
+round-trip:
 
 ```bash
 claude --plugin-dir /path/to/standard-tooling-plugin
 ```
 
-This bypasses `~/.claude/plugins/cache/` and mounts the working tree
-as the plugin source. Useful for iterating on hooks and skills before
-release.
+This bypasses `~/.claude/plugins/cache/` and mounts the working
+tree as the plugin source.
 
-Reporting issues or requesting changes: open an issue at
+### Reporting issues
+
+Open an issue at
 <https://github.com/wphillipmoore/standard-tooling-plugin/issues>.
