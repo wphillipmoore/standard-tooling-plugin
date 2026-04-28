@@ -874,30 +874,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#stop-hooks" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stop Hooks
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Stop Hooks">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#stop-guard-finalization" class="md-nav__link">
-    <span class="md-ellipsis">
-      stop-guard-finalization
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#hooks-deliberately-not-provided" class="md-nav__link">
     <span class="md-ellipsis">
       Hooks deliberately not provided
@@ -911,6 +887,15 @@
   <a href="#per-edit-linting-validation" class="md-nav__link">
     <span class="md-ellipsis">
       Per-edit linting / validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop-hook-for-finalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stop hook for finalization
     </span>
   </a>
   
@@ -1153,30 +1138,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#stop-hooks" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stop Hooks
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Stop Hooks">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#stop-guard-finalization" class="md-nav__link">
-    <span class="md-ellipsis">
-      stop-guard-finalization
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#hooks-deliberately-not-provided" class="md-nav__link">
     <span class="md-ellipsis">
       Hooks deliberately not provided
@@ -1190,6 +1151,15 @@
   <a href="#per-edit-linting-validation" class="md-nav__link">
     <span class="md-ellipsis">
       Per-edit linting / validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop-hook-for-finalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stop hook for finalization
     </span>
   </a>
   
@@ -1387,20 +1357,6 @@ while the context is fresh.</p>
 <p><strong>Alternative.</strong> Triage the warning via the <code>deprecation-triage</code>
 skill — either fix it now or capture it in a tracking issue with
 clear resolution criteria.</p>
-<h2 id="stop-hooks">Stop Hooks<a class="headerlink" href="#stop-hooks" title="Permanent link">&para;</a></h2>
-<h3 id="stop-guard-finalization">stop-guard-finalization<a class="headerlink" href="#stop-guard-finalization" title="Permanent link">&para;</a></h3>
-<p><strong>What.</strong> Blocks session exit if a PR was submitted in this session
-but <code>st-finalize-repo</code> was not run afterward. Checks the
-transcript for <code>st-submit-pr</code> and <code>st-finalize-repo</code> invocations.</p>
-<p><strong>Why.</strong> Prevents the "submitted a PR, never finalized" failure
-mode where local state stays on a merged feature branch and future
-work starts from a stale base. This is a soft enforcement of the
-same lifecycle the <code>remind-finalize</code> PostToolUse hook encourages.</p>
-<p><strong>Override.</strong> The hook honors <code>stop_hook_active=true</code> to prevent
-infinite loops — if a Stop hook has already continued the session
-once, it won't block again. In normal use: finalize the PR before
-trying to end the session, or (if the PR has legitimately not
-merged yet) check with <code>gh pr view</code> and wait.</p>
 <h2 id="hooks-deliberately-not-provided">Hooks deliberately not provided<a class="headerlink" href="#hooks-deliberately-not-provided" title="Permanent link">&para;</a></h2>
 <h3 id="per-edit-linting-validation">Per-edit linting / validation<a class="headerlink" href="#per-edit-linting-validation" title="Permanent link">&para;</a></h3>
 <p>The plugin does <strong>not</strong> ship a <code>PostToolUse</code> Write|Edit hook that
@@ -1430,6 +1386,27 @@ runs the pre-commit git hook — so there's a hard gate between
 should resist the impulse to re-add per-edit validation as a
 "missing feature." The cost-per-value math doesn't work; the gap
 is intentional.</p>
+<h3 id="stop-hook-for-finalization">Stop hook for finalization<a class="headerlink" href="#stop-hook-for-finalization" title="Permanent link">&para;</a></h3>
+<p>The plugin no longer ships a Stop hook that blocks session exit
+on "PR submitted but <code>st-finalize-repo</code> not run." That hook
+(<code>stop-guard-finalization.sh</code>) was removed in
+<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/56">#56</a>.</p>
+<p><strong>Why removed.</strong> Under the current "humans review and merge
+feature/bugfix PRs" posture, the agent submits a PR, waits for
+CI green, hands off to the user, and <strong>stops</strong> — that's the
+correct end of the work cycle. Finalization happens in a later
+session, after the user reports the merge. The hook would have
+fired on every correct exit, blocking the desired behavior.</p>
+<p><strong>What replaces it.</strong> The
+<a href="../skills/#pr-workflow"><code>pr-workflow</code> skill</a>'s
+"After the merge" section documents the user-prompted finalize
+flow. The
+<a href="#remind-finalize"><code>remind-finalize</code></a> PostToolUse hook still
+emits a reminder after <code>st-submit-pr</code> so the agent knows to run
+<code>st-finalize-repo</code> once the merge is reported.</p>
+<p><strong>Don't re-add this.</strong> Re-adding a session-end finalize gate
+would block the standard PR submission workflow and force agents
+into broken cleanup behavior just to satisfy the hook.</p>
 <h2 id="how-hooks-work-technical">How hooks work — technical<a class="headerlink" href="#how-hooks-work-technical" title="Permanent link">&para;</a></h2>
 <p>Hooks are defined in <code>hooks/hooks.json</code> and implemented as shell
 scripts in <code>hooks/scripts/</code>. Each hook receives the tool input as

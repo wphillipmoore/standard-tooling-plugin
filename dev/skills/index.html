@@ -1021,8 +1021,8 @@ substantially change it.</p>
 <tbody>
 <tr>
 <td><a href="#pr-workflow">pr-workflow</a></td>
-<td>Guide PR creation, submission, and finalization</td>
-<td>Current; worktree + manual-merge revision tracked in <a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/56">#56</a></td>
+<td>Submit a PR, wait for CI green, hand off to user; finalize after merge</td>
+<td>Current</td>
 </tr>
 <tr>
 <td><a href="#publish">publish</a></td>
@@ -1052,20 +1052,20 @@ substantially change it.</p>
 </tbody>
 </table>
 <h2 id="pr-workflow">pr-workflow<a class="headerlink" href="#pr-workflow" title="Permanent link">&para;</a></h2>
-<p><strong>What it does.</strong> Guides the full PR lifecycle: pre-submission
-validation, submission via <code>st-submit-pr</code>, merge-state monitoring,
-and finalization via <code>st-finalize-repo</code>.</p>
+<p><strong>What it does.</strong> Submits a PR via <code>st-submit-pr</code> from inside the
+issue's worktree, waits for CI to go green, fixes any agent-fixable
+red checks, and hands off to the user for review and merge. After
+the user reports the merge, runs <code>st-finalize-repo</code> from the
+worktree to clean up local state.</p>
 <p><strong>When to use.</strong> When work on a branch is complete and ready for
 review. Covers "open a PR for this branch" through "PR merged,
-clean up local state."</p>
-<p><strong>Status.</strong> Current, but two recent fleet changes need to be
-folded in: the worktree convention
-(<a href="https://github.com/wphillipmoore/standard-tooling/issues/258">standard-tooling#258</a>)
-means PR creation and finalization both happen from inside a
-worktree, and auto-merge has been disabled org-wide as of
-2026-04-22 — human review and manual merge are now the default
-instead of auto-merge-when-CI-passes. Tracked in
-<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/56">plugin#56</a>.</p>
+clean up local state" — but the agent stops between submission
+and merge; humans review and merge feature/bugfix PRs.</p>
+<p><strong>Status.</strong> Current. Reflects the worktree convention and the
+fleet-wide "humans review human PRs" posture as of 2026-04-22.
+The release-workflow exception (agent merges release PRs via
+<code>st-merge-when-green</code>) lives in the
+<a href="#publish"><code>publish</code> skill</a>, not here.</p>
 <h2 id="publish">publish<a class="headerlink" href="#publish" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Drives end-to-end release publishing for
 library / tooling / documentation repositories. Covers the
