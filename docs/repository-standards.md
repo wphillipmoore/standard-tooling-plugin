@@ -4,6 +4,7 @@
 
 - [AI co-authors](#ai-co-authors)
 - [Repository profile](#repository-profile)
+- [Post-merge async workflows](#post-merge-async-workflows)
 - [Validation policy](#validation-policy)
 - [External tooling dependencies](#external-tooling-dependencies)
 - [CI gates](#ci-gates)
@@ -23,6 +24,21 @@
 - release_model: tagged-release
 - supported_release_lines: 0.x (pre-release)
 - primary_language: none
+
+## Post-merge async workflows
+
+Workflows triggered by a merge to `develop` that must be verified
+as part of PR finalization. A PR is not "done" until every listed
+workflow has reached `conclusion: success` for the merge commit.
+
+| Workflow    | Trigger          | What it does                          |
+| ----------- | ---------------- | ------------------------------------- |
+| `docs.yml`  | push to `develop`| Rebuild MkDocs site, deploy dev alias |
+
+Repos with additional async post-merge workflows (e.g.,
+`docker-publish.yml` in `standard-tooling`) add them to this
+table. The `pr-workflow` skill reads this section to determine
+which workflows to verify.
 
 ## Validation policy
 
