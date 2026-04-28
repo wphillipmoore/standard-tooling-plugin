@@ -1046,8 +1046,8 @@ substantially change it.</p>
 </tr>
 <tr>
 <td><a href="#summarize">summarize</a></td>
-<td>Decision / operation / stream-of-consciousness summaries</td>
-<td>Current; relationship with <code>soc-capture</code> to be clarified in <a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/58">#58</a></td>
+<td>Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet</td>
+<td>Current</td>
 </tr>
 </tbody>
 </table>
@@ -1137,12 +1137,16 @@ three modes:</p>
 <p><strong>When to use.</strong> When the user explicitly asks for a structured
 summary, invokes SOC capture, or the skill is invoked via
 handoff protocols.</p>
-<p><strong>Status.</strong> Current, with an open clarification: earlier session
-notes referred to a separate <code>soc-capture</code> concept as if it were
-distinct from the <code>soc</code> mode inside <code>summarize</code>. Whether those
-are actually the same thing — or whether <code>soc</code> should become its
-own top-level skill — is tracked in
-<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/58">plugin#58</a>.</p>
+<p><strong>Status.</strong> Current. Decision A from
+<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/58">plugin#58</a>:
+this skill's SOC mode is the canonical SOC capture mechanism for
+the fleet. Repo-local references to <code>soc-capture</code> or
+<code>summarize-soc</code> as skill names are stale pointers — splitting
+SOC into its own skill was rejected because capture and summary
+are intertwined here (<code>End SOC</code> triggers the structured summary).
+The cross-repo references in <code>the-infrastructure-mindset</code> are
+tracked for cleanup in
+<a href="https://github.com/wphillipmoore/the-infrastructure-mindset/issues/165">the-infrastructure-mindset#165</a>.</p>
 <h2 id="how-skills-work-technical">How skills work — technical<a class="headerlink" href="#how-skills-work-technical" title="Permanent link">&para;</a></h2>
 <p>Each skill is a directory under <code>skills/</code> containing:</p>
 <ul>
