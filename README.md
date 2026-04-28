@@ -68,42 +68,24 @@ PATH first — see the Getting Started guide above.
 ## Update
 
 After a new release ships, refresh the local install with this
-three-step sequence. Each step is required — none of them are
-implied by the others.
+two-step sequence:
 
 ```text
 /plugin marketplace update standard-tooling-marketplace
-/plugin update standard-tooling@standard-tooling-marketplace
 /reload-plugins
 ```
 
 What each step does:
 
 1. **`/plugin marketplace update <marketplace>`** — refreshes the
-   marketplace index only. It tells Claude Code that a new version
-   exists; it does **not** download the new version.
-2. **`/plugin update <plugin>@<marketplace>`** — installs the new
-   version into the local cache at
-   `~/.claude/plugins/cache/<plugin-id>/<version>/`. The previous
-   version stays on disk for 7 days as a grace window for
-   concurrent sessions, then is removed automatically.
-3. **`/reload-plugins`** — applies the new skills / hooks / agents
+   marketplace index and downloads the new plugin version into the
+   local cache at `~/.claude/plugins/cache/<plugin-id>/<version>/`.
+   The previous version stays on disk for 7 days as a grace window
+   for concurrent sessions, then is removed automatically.
+2. **`/reload-plugins`** — applies the new skills / hooks / agents
    to the **current** Claude Code session without restarting.
    Without this, the running session keeps using the old in-memory
    plugin state.
-
-### Non-interactive form
-
-For scripts and one-liners (e.g., `claude` invocations from a
-deploy hook), the same install-side action runs as:
-
-```bash
-claude plugin update standard-tooling@standard-tooling-marketplace
-```
-
-After running it, any **new** Claude Code session you start picks
-up the new version automatically. Existing sessions still need
-`/reload-plugins`.
 
 ### Verify the update
 

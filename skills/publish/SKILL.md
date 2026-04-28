@@ -152,10 +152,16 @@ within a single session.
   setup instructions.
 - Verify `GH_TOKEN` is set in the environment. If not, **abort** with a
   message directing the user to set it.
-- **Library-release only**: Read the current version from the project manifest
-  and compare it to the latest `v*` tag. If the version matches an existing
-  tag, **abort** — the post-publish version bump did not run and the release
-  tooling needs investigation. Do not attempt to fix this automatically.
+- **Library-release only**: Determine the current version by running the
+  version extraction command from the repository's `publish.yml` workflow
+  (the `Extract version` step). Execute the command and capture the output —
+  **never infer the version from branch names, PR titles, conversation
+  context, or any other source.** This is the authoritative version for all
+  subsequent phases; store it and reuse it rather than re-reading or guessing.
+  Compare the captured version to the latest `v*` tag. If it matches an
+  existing tag, **abort** — the post-publish version bump did not run and the
+  release tooling needs investigation. Do not attempt to fix this
+  automatically.
 
 ## Version override
 
@@ -167,7 +173,7 @@ normally carries the next patch. When accumulated changes justify a minor or
 major release, the version must be bumped on develop before the release is
 prepared.
 
-1. Read the current version from the project manifest on `develop`.
+1. Use the version captured during preflight as the starting version.
 2. Compute the target version by incrementing the minor or major component
    (resetting lower components to zero).
 3. Update the version at the source of truth in the project manifest.
@@ -216,7 +222,8 @@ and is part of this skill's responsibility.
 
 ### Phase 1 — Prepare release
 
-1. Read the current version from the project manifest.
+1. Use the version captured during preflight. Do not re-read or
+   re-derive it.
 2. Create a GitHub issue titled `release: <version>` with a body
    summarizing the release. This issue serves as the tracking issue
    for the release and provides the issue linkage required by the
@@ -411,8 +418,9 @@ the bookkeeping is still done.
 The release artifacts are published, but **consumers haven't
 picked them up yet.** Every Claude Code session that has this
 plugin (or any standard-tooling-distributed plugin) installed
-needs an explicit local refresh — neither `docker run` nor
-`/plugin marketplace update` auto-pulls fresh content. The agent
+needs an explicit local refresh — `/plugin marketplace update`
+downloads the new version but the running session keeps using the
+old in-memory state until `/reload-plugins` is run. The agent
 producing the release is responsible for surfacing the refresh
 step explicitly to the user. Listing artifacts and stopping is
 not the end of the cycle; saying "v\<version> shipped, now run
@@ -423,7 +431,6 @@ repo (`standard-tooling-plugin`):
 
 ```text
 /plugin marketplace update standard-tooling-marketplace
-/plugin update standard-tooling@standard-tooling-marketplace
 /reload-plugins
 ```
 
