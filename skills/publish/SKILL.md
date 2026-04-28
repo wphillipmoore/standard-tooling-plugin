@@ -313,7 +313,36 @@ If either workflow failed, follow the failure-handling
 procedure. A failed publish after successful PR merges leaves
 the repository half-released; surface the failure and stop.
 
-Comment on the tracking issue with Phase 4 results (both run
+#### Cross-repo image rebuild verification (standard-tooling only)
+
+When publishing `standard-tooling`, `publish.yml` fires a
+`repository_dispatch` to `standard-tooling-docker` that triggers
+a dev container image rebuild. Non-Python consumers get
+`standard-tooling` from the dev container image, not from the
+GitHub tag — until the image rebuilds, those consumers are still
+on the previous version.
+
+After confirming the local workflows above, verify the dispatched
+image rebuild in `standard-tooling-docker`:
+
+```bash
+gh run watch --exit-status --repo wphillipmoore/standard-tooling-docker \
+  $(gh run list --repo wphillipmoore/standard-tooling-docker \
+    --workflow docker-publish.yml --event repository_dispatch \
+    --limit 1 --json databaseId --jq '.[0].databaseId')
+```
+
+If the image rebuild fails, follow the failure-handling procedure.
+A tagged release whose dev container image was not rebuilt is a
+partial deployment — non-Python consumers remain on the previous
+version until the image is manually retriggered.
+
+Include the `docker-publish.yml` run URL in the Phase 4 tracking
+issue comment alongside the local workflow run URLs.
+
+Skip this step when publishing any other repository.
+
+Comment on the tracking issue with Phase 4 results (all run
 URLs, list of artifacts confirmed).
 
 ### Phase 5 — Next-cycle dependency updates
@@ -346,7 +375,8 @@ the bookkeeping is still done.
    - All PR URLs (release PR, bump PR, any recovery PRs)
    - Tag, develop tag, GitHub Release URLs
    - `publish.yml` and `docs.yml` (or equivalent) run URLs from
-     Phase 4
+     Phase 4; include the `docker-publish.yml` run URL when
+     publishing `standard-tooling`
    - Any failures encountered and the resolutions
 
    All issue and PR references in the summary must be full URLs
