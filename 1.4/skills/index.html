@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Claude Code plugin delivering shared hooks, skills, agents, and commands for the standard-tooling ecosystem">
+        <meta name="description" content="Claude Code plugin delivering shared hooks, skills, and agents for the standard-tooling ecosystem">
       
       
       
@@ -487,6 +487,8 @@
       
         
       
+        
+      
     
     
     
@@ -530,6 +532,29 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v1.4.6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.4.6
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1051,8 +1076,8 @@ substantially change it.</p>
 </tr>
 <tr>
 <td><a href="#publish">publish</a></td>
-<td>Drive library / tooling / documentation release flow</td>
-<td>Needs review; rethink tracked in <a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/57">#57</a></td>
+<td>Drive library / tooling / documentation release flow (Phases 1–7)</td>
+<td>Current</td>
 </tr>
 <tr>
 <td><a href="#project-issue">project-issue</a></td>
@@ -1062,7 +1087,7 @@ substantially change it.</p>
 <tr>
 <td><a href="#dependency-update">dependency-update</a></td>
 <td>Run the dependency-update workflow</td>
-<td>Current (reviewed 2026-04-23, no changes)</td>
+<td>Current</td>
 </tr>
 <tr>
 <td><a href="#deprecation-triage">deprecation-triage</a></td>
@@ -1101,22 +1126,18 @@ tracking.</p>
 <p><strong>When to use.</strong> When preparing and executing a versioned release
 of a repository that uses the <code>library-release</code> or
 <code>tagged-release</code> model.</p>
-<p><strong>Status.</strong> Needs review. The dockerized validation model
-(everything runs via <code>st-docker-run</code>) and the recent publish-
-workflow changes in individual repos may have drifted from what
-this skill describes. Rethink tracked in
-<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/57">plugin#57</a>
-— applies lessons from the first-ever
-standard-tooling-plugin release exercise.</p>
+<p><strong>Status.</strong> Current. Reflects the seven-phase release flow as of
+v1.4.5: Phase 4 verifies both <code>publish.yml</code> and <code>docs.yml</code>
+(#84); Phase 6 closes the tracking issue with a summary (#83);
+Phase 7 surfaces the consumer-refresh sequence (#105). The
+host-vs-container split is documented in the skill's own
+reference section.</p>
 <h2 id="project-issue">project-issue<a class="headerlink" href="#project-issue" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Guided issue creation that collects issue type,
-priority, work type, summary, problem/goal, acceptance criteria,
-and validation steps. Creates the issue in the target repo and
-adds it to the appropriate GitHub Project with the right field
-values set.</p>
-<p><strong>When to use.</strong> When creating a new tracked issue, especially
-when it belongs on a GitHub Project board and needs standard
-fields populated.</p>
+summary, problem/goal, acceptance criteria, and validation steps.
+Creates the issue in the target repo with a label.</p>
+<p><strong>When to use.</strong> When creating a new tracked issue that needs
+standard fields populated consistently.</p>
 <p><strong>Status.</strong> Current.</p>
 <h2 id="dependency-update">dependency-update<a class="headerlink" href="#dependency-update" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Repeatable dependency-update workflow covering
@@ -1129,12 +1150,13 @@ below the latest acceptable range.</p>
 <p><strong>When to use.</strong> When updating project dependencies — whether in
 response to a CVE, a scheduled cycle, or as part of normal
 maintenance.</p>
-<p><strong>Status.</strong> Current. Reviewed for currency on 2026-04-23 as part
-of <a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/59">plugin#59</a>;
-no changes needed. References <code>docs/repository/dependency-update-workflow.md</code>
-and sibling docs that may not exist in every consuming repo — those
-references are informational (consult if present) rather than
-required.</p>
+<p><strong>Status.</strong> Current. Rewritten as part of the skills audit
+(<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/114">#114</a>)
+with concrete per-category commands (Python deps via <code>uv lock</code>,
+CI action pins, runtime versions, doc toolchain, linters, build
+tools), <code>st-validate-local</code> as the canonical validation step,
+structured failure handling via anchored dependency records, and
+anchor review as a first-class section.</p>
 <h2 id="deprecation-triage">deprecation-triage<a class="headerlink" href="#deprecation-triage" title="Permanent link">&para;</a></h2>
 <p><strong>What it does.</strong> Applies the deprecation-warning triage policy:
 search for an existing issue matching the warning, create a
