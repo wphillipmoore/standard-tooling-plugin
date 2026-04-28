@@ -17,9 +17,7 @@ HOST_TOOLS=(
   st-merge-when-green
   st-validate-local
   st-docker-run
-  st-list-project-repos
   st-ensure-label
-  st-set-project-field
   gh
   git
   git-cliff
