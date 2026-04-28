@@ -14,6 +14,7 @@ description: Submit a pull request, wait for CI to go green, and hand off to the
 - [Wait for CI green](#wait-for-ci-green)
 - [Hand-off to the user](#hand-off-to-the-user)
 - [After the merge](#after-the-merge)
+- [Close the issue](#close-the-issue)
 - [Resources](#resources)
 
 ## Overview
@@ -29,6 +30,10 @@ The flow is:
    does not enable auto-merge and does not merge the PR itself.
 4. **Finalize** after the user reports the merge, by running
    `st-finalize-repo`.
+5. **Close the issue** if this PR resolves it. Using `Ref`
+   instead of `Fixes` defers the *timing* of closure, not the
+   *responsibility*. The agent must close the issue explicitly
+   after finalization succeeds.
 
 ### Critical policy: humans review and merge feature/bugfix PRs
 
@@ -86,9 +91,12 @@ for the canonical split.
 4. Populate the PR template fields. Required:
    - Issue linkage using `Ref #N`. **Do not use `Fixes`, `Closes`,
      or `Resolves`** — those keywords auto-close the issue on
-     merge, bypassing finalization. Issues are closed explicitly
-     after `st-finalize-repo` confirms the work cycle is complete.
-     The `block-autoclose-linkage` hook enforces this mechanically.
+     merge, bypassing finalization. Using `Ref` instead defers the
+     *timing* of closure, not the *responsibility*: if this PR
+     resolves the issue, the agent must close it explicitly after
+     finalization (see [Close the issue](#close-the-issue)).
+     The `block-autoclose-linkage` hook enforces the keyword ban
+     mechanically.
 
 ## Submission
 
@@ -223,10 +231,17 @@ For each workflow in the table:
 If the repository profile lists no post-merge async workflows,
 skip this step.
 
-### Close the issue
+## Close the issue
+
+**This step is mandatory when the PR resolves the issue.** Using
+`Ref` instead of `Fixes` defers the timing of closure, not the
+responsibility. If you would have used `Fixes` or `Closes` —
+because this PR completes the work the issue tracks — you must
+close the issue here. The `Ref` keyword and this explicit closure
+step together replace what `Fixes` used to do automatically.
 
 After finalization and post-merge workflow verification both
-succeed, close the linked issue:
+succeed:
 
 ```bash
 gh issue close <N> --comment "Closed after finalization. PR: <pr-url>"
@@ -234,14 +249,14 @@ gh issue close <N> --comment "Closed after finalization. PR: <pr-url>"
 
 Issue closure happens here — not at merge time — because the work
 cycle is not complete until `st-finalize-repo` has reconciled
-local state. The `Ref #N` linkage used at submission time
-deliberately avoids auto-close so this explicit step is the only
-path to closure.
+local state and post-merge workflows have succeeded. Since
+auto-close keywords are banned, this explicit step is the **only
+path to closure**. Skipping it leaves the issue open indefinitely.
 
-If the PR used `Ref` (non-closing) linkage against an issue whose
-acceptance criteria span multiple PRs, **do not close the issue**.
-Only close when this PR completes the final piece of work the
-issue tracks.
+**Exception — multi-PR issues:** If the issue's acceptance
+criteria span multiple PRs and this PR is not the final one,
+do not close the issue. Only close when the last PR in the
+series has been finalized.
 
 This concludes the work cycle.
 
