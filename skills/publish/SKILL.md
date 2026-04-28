@@ -152,10 +152,16 @@ within a single session.
   setup instructions.
 - Verify `GH_TOKEN` is set in the environment. If not, **abort** with a
   message directing the user to set it.
-- **Library-release only**: Read the current version from the project manifest
-  and compare it to the latest `v*` tag. If the version matches an existing
-  tag, **abort** — the post-publish version bump did not run and the release
-  tooling needs investigation. Do not attempt to fix this automatically.
+- **Library-release only**: Determine the current version by running the
+  version extraction command from the repository's `publish.yml` workflow
+  (the `Extract version` step). Execute the command and capture the output —
+  **never infer the version from branch names, PR titles, conversation
+  context, or any other source.** This is the authoritative version for all
+  subsequent phases; store it and reuse it rather than re-reading or guessing.
+  Compare the captured version to the latest `v*` tag. If it matches an
+  existing tag, **abort** — the post-publish version bump did not run and the
+  release tooling needs investigation. Do not attempt to fix this
+  automatically.
 
 ## Version override
 
@@ -167,7 +173,7 @@ normally carries the next patch. When accumulated changes justify a minor or
 major release, the version must be bumped on develop before the release is
 prepared.
 
-1. Read the current version from the project manifest on `develop`.
+1. Use the version captured during preflight as the starting version.
 2. Compute the target version by incrementing the minor or major component
    (resetting lower components to zero).
 3. Update the version at the source of truth in the project manifest.
@@ -216,7 +222,8 @@ and is part of this skill's responsibility.
 
 ### Phase 1 — Prepare release
 
-1. Read the current version from the project manifest.
+1. Use the version captured during preflight. Do not re-read or
+   re-derive it.
 2. Create a GitHub issue titled `release: <version>` with a body
    summarizing the release. This issue serves as the tracking issue
    for the release and provides the issue linkage required by the
