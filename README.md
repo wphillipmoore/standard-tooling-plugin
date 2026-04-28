@@ -145,7 +145,6 @@ for the rationale.
 | `block-associative-arrays` | PreToolUse/Bash | Blocks bash 4+ associative arrays — host scripts must run on macOS bash 3.2 |
 | `remind-finalize` | PostToolUse/Bash | After `st-submit-pr`, reminds to run `st-finalize-repo` |
 | `detect-deprecation-warnings` | PostToolUse/Bash | Surfaces deprecation warnings from test output for triage |
-| `stop-guard-finalization` | Stop | Blocks session exit if a PR was submitted but not finalized |
 
 Full reference:
 <https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/docs/site/docs/hooks/index.md>.

@@ -166,25 +166,6 @@ while the context is fresh.
 skill — either fix it now or capture it in a tracking issue with
 clear resolution criteria.
 
-## Stop Hooks
-
-### stop-guard-finalization
-
-**What.** Blocks session exit if a PR was submitted in this session
-but `st-finalize-repo` was not run afterward. Checks the
-transcript for `st-submit-pr` and `st-finalize-repo` invocations.
-
-**Why.** Prevents the "submitted a PR, never finalized" failure
-mode where local state stays on a merged feature branch and future
-work starts from a stale base. This is a soft enforcement of the
-same lifecycle the `remind-finalize` PostToolUse hook encourages.
-
-**Override.** The hook honors `stop_hook_active=true` to prevent
-infinite loops — if a Stop hook has already continued the session
-once, it won't block again. In normal use: finalize the PR before
-trying to end the session, or (if the PR has legitimately not
-merged yet) check with `gh pr view` and wait.
-
 ## Hooks deliberately not provided
 
 ### Per-edit linting / validation
@@ -219,6 +200,32 @@ runs the pre-commit git hook — so there's a hard gate between
 should resist the impulse to re-add per-edit validation as a
 "missing feature." The cost-per-value math doesn't work; the gap
 is intentional.
+
+### Stop hook for finalization
+
+The plugin no longer ships a Stop hook that blocks session exit
+on "PR submitted but `st-finalize-repo` not run." That hook
+(`stop-guard-finalization.sh`) was removed in
+[#56](https://github.com/wphillipmoore/standard-tooling-plugin/issues/56).
+
+**Why removed.** Under the current "humans review and merge
+feature/bugfix PRs" posture, the agent submits a PR, waits for
+CI green, hands off to the user, and **stops** — that's the
+correct end of the work cycle. Finalization happens in a later
+session, after the user reports the merge. The hook would have
+fired on every correct exit, blocking the desired behavior.
+
+**What replaces it.** The
+[`pr-workflow` skill](../skills/index.md#pr-workflow)'s
+"After the merge" section documents the user-prompted finalize
+flow. The
+[`remind-finalize`](#remind-finalize) PostToolUse hook still
+emits a reminder after `st-submit-pr` so the agent knows to run
+`st-finalize-repo` once the merge is reported.
+
+**Don't re-add this.** Re-adding a session-end finalize gate
+would block the standard PR submission workflow and force agents
+into broken cleanup behavior just to satisfy the hook.
 
 ## How hooks work — technical
 
