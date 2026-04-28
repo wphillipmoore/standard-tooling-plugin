@@ -172,28 +172,6 @@ working directory:
      --method POST -F sub_issue_id="$child_db_id"
    ```
 
-5. **Add to the parent's project** (if the parent is on a project):
-
-   ```bash
-   # Identify the parent's project
-   gh api graphql -f query='
-   {
-     repository(owner: "<parent_owner>", name: "<parent_repo>") {
-       issue(number: <parent_number>) {
-         projectItems(first: 5) {
-           nodes { project { number title } }
-         }
-       }
-     }
-   }'
-
-   # Add the new sub-issue to the same project
-   gh project item-add <project_number> \
-     --owner <owner> \
-     --url <child_issue_url> \
-     --format json --jq '.id'
-   ```
-
 Capture: `issue_number` — the repo-local number to use for
 worktree+branch creation.
 

@@ -1,7 +1,7 @@
 # Standard Tooling Plugin
 
 Claude Code plugin for the standard-tooling ecosystem. Delivers shared hooks,
-skills, agents, and commands to all managed repositories.
+skills, and agents to all managed repositories.
 
 ## Overview
 
@@ -24,7 +24,7 @@ that enforces workflow compliance mechanically.
 |Repo|Delivers|Distribution|
 |---|---|---|
 |`standard-tooling`|Python CLIs (`st-*`), validators|PATH|
-|`standard-tooling-plugin`|Hooks, skills, agents, commands|Claude Code plugin|
+|`standard-tooling-plugin`|Hooks, skills, agents|Claude Code plugin|
 
 These are complementary: the plugin tells Claude how to behave; PATH makes the
 tools available to run.
