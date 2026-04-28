@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.7] - 2026-04-28
+
+### Documentation
+
+- remove include directives and downgrade standards-and-conventions refs
+
+### Features
+
+- publish: verify bump PR issue linkage before merge
+- forbid auto-close linkage, require Ref and explicit issue closure
+
 ## [1.4.6] - 2026-04-28
 
 ### Bug fixes
