@@ -71,6 +71,18 @@ Follow the Summarize Stream of Consciousness Protocol.
 - `End SOC` ends capture mode and triggers the structured summary.
 - If SOC is not closed with `End SOC`, do not produce a summary.
 
+### Canonical SOC capture for the fleet
+
+This SOC mode is the canonical SOC capture mechanism for every
+repo in the fleet that uses voice→text→article workflows
+(notably `the-infrastructure-mindset`). Repo-local references
+to `soc-capture` or `summarize-soc` as skill names are stale
+pointers — the real skill is this one, in SOC mode. See
+[`#58`](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58)
+for the rationale: capture and summary are intertwined here
+(`End SOC` triggers the structured summary), so splitting SOC
+into its own skill adds no semantic gain.
+
 ## Output templates
 
 Decisions:
