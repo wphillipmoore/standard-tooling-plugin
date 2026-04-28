@@ -298,18 +298,27 @@ and operations modes may be unused.
 use case). Decisions and operations modes are functional but
 unused.
 
-**Status: INVESTIGATE + DECIDE.** The candidate outcomes in #58:
+**Status (audit): INVESTIGATE + DECIDE.**
 
-- **A.** Keep all three modes; retire project-local `soc-capture`.
-- **B.** Split SOC out into a dedicated skill.
-- **C.** Trim — delete unused modes.
-- **D.** Project-local `soc-capture` stays canonical; this skill
-  serves a different purpose.
+**Status (post-audit): COMPLETE.** Decision **A** (keep all three
+modes; SOC stays unified with the rest of the skill). The
+investigation surfaced a small surprise: there is no `soc-capture`
+or `summarize-soc` skill anywhere in the fleet — the names are
+dangling references in `the-infrastructure-mindset`'s `CLAUDE.md`,
+`AGENTS.md`, and `skills/article-workflow/SKILL.md`. The
+mechanism that has been doing SOC capture all along is this
+skill's SOC mode.
 
-This is a small skill; the investigation belongs to its own
-focused PR.
+Plugin-side change: added a "Canonical SOC capture for the fleet"
+section to the SOC mode that explicitly names the dangling
+references and links to #58 for the rationale.
 
-**Folds in:**
+Cross-repo follow-up filed as
+[the-infrastructure-mindset#165](https://github.com/wphillipmoore/the-infrastructure-mindset/issues/165)
+to fix the stale references in that repo. Out of scope for this
+plugin PR.
+
+**Resolved:**
 [#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58).
 
 ## Part 3 — Coverage gaps
@@ -453,10 +462,25 @@ deploy docs for `standard-tooling`,
 #105's acceptance. Both are bigger than the audit's step 3
 scope and tracked separately.
 
-### 4. `summarize` decision (closes #58)
+### 4. `summarize` decision (closes #58) — DONE
 
-Small. Investigate + pick one of the four candidate outcomes;
-implement.
+**Status update (post-audit, 2026-04-28): completed.** Decision
+**A** — keep `summarize` with all three modes; SOC mode is the
+canonical SOC capture mechanism for the fleet. The investigation
+surfaced that there is no `soc-capture` or `summarize-soc` skill
+anywhere; both names are dangling references in
+`the-infrastructure-mindset`. This skill's SOC mode is what's
+been doing the work all along.
+
+Plugin-side: added a "Canonical SOC capture for the fleet"
+section to `summarize`'s SOC mode that names the dangling
+references explicitly so future agents don't get confused.
+
+Cross-repo: filed
+[`the-infrastructure-mindset#165`](https://github.com/wphillipmoore/the-infrastructure-mindset/issues/165)
+to fix the stale references in that repo (CLAUDE.md, AGENTS.md,
+skills/article-workflow/SKILL.md). That work happens in a
+separate agent session per the user's instruction.
 
 ### 5. `project-issue` framing patch
 

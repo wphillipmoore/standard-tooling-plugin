@@ -19,7 +19,7 @@ substantially change it.
 | [project-issue](#project-issue) | Create a well-structured GitHub issue via guided questions | Current |
 | [dependency-update](#dependency-update) | Run the dependency-update workflow | Current (reviewed 2026-04-23, no changes) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
-| [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries | Current; relationship with `soc-capture` to be clarified in [#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58) |
+| [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 
 ## pr-workflow
 
@@ -129,12 +129,16 @@ three modes:
 summary, invokes SOC capture, or the skill is invoked via
 handoff protocols.
 
-**Status.** Current, with an open clarification: earlier session
-notes referred to a separate `soc-capture` concept as if it were
-distinct from the `soc` mode inside `summarize`. Whether those
-are actually the same thing — or whether `soc` should become its
-own top-level skill — is tracked in
-[plugin#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58).
+**Status.** Current. Decision A from
+[plugin#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58):
+this skill's SOC mode is the canonical SOC capture mechanism for
+the fleet. Repo-local references to `soc-capture` or
+`summarize-soc` as skill names are stale pointers — splitting
+SOC into its own skill was rejected because capture and summary
+are intertwined here (`End SOC` triggers the structured summary).
+The cross-repo references in `the-infrastructure-mindset` are
+tracked for cleanup in
+[the-infrastructure-mindset#165](https://github.com/wphillipmoore/the-infrastructure-mindset/issues/165).
 
 ## How skills work — technical
 
