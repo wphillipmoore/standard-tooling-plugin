@@ -130,6 +130,37 @@ that *launch* the container cannot assume that environment.
 for key-value lookups. If you genuinely need associative arrays,
 the code belongs inside the container, not in host scripts.
 
+### enforce-host-container-split
+
+**What.** Checks the routing of every `st-*`, `gh`, `git`, and
+language-toolchain command against the canonical host-vs-container
+split from
+[#96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96).
+
+- **Denies** wrapping a host-only tool in `st-docker-run --`
+  (e.g., `st-docker-run -- gh issue list`). The host tool needs
+  SSH-agent, host git config, or host `gh` auth — the container
+  can't satisfy those.
+- **Warns** (via `additionalContext`, not deny) when a
+  container-only tool is invoked bare without `st-docker-run --`
+  (e.g., bare `ruff check .`). This sometimes works on hosts
+  with the tool installed but may silently use the wrong version.
+
+The canonical tool lists live in
+`hooks/scripts/lib/host-container-tools.sh` so the same source of
+truth powers both the hook and any future docs/lint.
+
+**Why.** The drift that produced #96 — 47 days of agents silently
+wrapping host tools in the container — was caused by documentation
+being the only enforcement mechanism. This hook makes the routing
+rule mechanical.
+
+**Alternative.** For denied commands: invoke the host tool
+directly (drop the `st-docker-run --` prefix). For warned
+commands: wrap the container tool in `st-docker-run --`. See the
+[`publish` skill's host-vs-container section](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands)
+for the canonical split and rationale.
+
 ## PreToolUse Hooks — Write|Edit
 
 *(none currently active — `block-memory-writes` was removed on

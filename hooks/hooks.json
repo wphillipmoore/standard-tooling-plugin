@@ -29,6 +29,11 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-associative-arrays.sh",
             "statusMessage": "Checking for bash associative arrays..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/enforce-host-container-split.sh",
+            "statusMessage": "Checking host/container tool routing..."
           }
         ]
       }
