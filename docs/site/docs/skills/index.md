@@ -14,53 +14,31 @@ substantially change it.
 
 | Skill | Purpose | Status |
 |---|---|---|
-| [branch-workflow](#branch-workflow) | Ensure a correctly named branch exists for an issue | Current; worktree revision tracked in [#55](https://github.com/wphillipmoore/standard-tooling-plugin/issues/55) |
-| [pr-workflow](#pr-workflow) | Guide PR creation, submission, and finalization | Current; worktree + manual-merge revision tracked in [#56](https://github.com/wphillipmoore/standard-tooling-plugin/issues/56) |
+| [pr-workflow](#pr-workflow) | Submit a PR, wait for CI green, hand off to user; finalize after merge | Current |
 | [publish](#publish) | Drive library / tooling / documentation release flow | Needs review; rethink tracked in [#57](https://github.com/wphillipmoore/standard-tooling-plugin/issues/57) |
 | [project-issue](#project-issue) | Create a well-structured GitHub issue via guided questions | Current |
 | [dependency-update](#dependency-update) | Run the dependency-update workflow | Current (reviewed 2026-04-23, no changes) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
-| [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries | Current; relationship with `soc-capture` to be clarified in [#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58) |
-
-## branch-workflow
-
-**What it does.** Ensures a correctly named feature / bugfix /
-hotfix / chore branch exists for a given issue before work starts.
-Handles project-to-repo issue resolution (when an issue lives in
-a GitHub Project on a different repo than the target), creates
-sub-issues for cross-repo work, and reuses existing branches when
-the current branch already matches.
-
-**When to use.** At the start of any work session that involves
-code changes. Typical invocation patterns: "start work on issue
-`#N`", "begin work on `<project issue URL>`", or pre-work prompts
-like `/paad:vibe` may invoke this internally.
-
-**Status.** Current. The worktree-convention revision
-(adopt the `.worktrees/issue-N-<slug>/` pattern from
-[standard-tooling#258](https://github.com/wphillipmoore/standard-tooling/issues/258))
-is tracked in
-[plugin#55](https://github.com/wphillipmoore/standard-tooling-plugin/issues/55)
-and will land as a distinct change.
+| [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
 
 ## pr-workflow
 
-**What it does.** Guides the full PR lifecycle: pre-submission
-validation, submission via `st-submit-pr`, merge-state monitoring,
-and finalization via `st-finalize-repo`.
+**What it does.** Submits a PR via `st-submit-pr` from inside the
+issue's worktree, waits for CI to go green, fixes any agent-fixable
+red checks, and hands off to the user for review and merge. After
+the user reports the merge, runs `st-finalize-repo` from the
+worktree to clean up local state.
 
 **When to use.** When work on a branch is complete and ready for
 review. Covers "open a PR for this branch" through "PR merged,
-clean up local state."
+clean up local state" — but the agent stops between submission
+and merge; humans review and merge feature/bugfix PRs.
 
-**Status.** Current, but two recent fleet changes need to be
-folded in: the worktree convention
-([standard-tooling#258](https://github.com/wphillipmoore/standard-tooling/issues/258))
-means PR creation and finalization both happen from inside a
-worktree, and auto-merge has been disabled org-wide as of
-2026-04-22 — human review and manual merge are now the default
-instead of auto-merge-when-CI-passes. Tracked in
-[plugin#56](https://github.com/wphillipmoore/standard-tooling-plugin/issues/56).
+**Status.** Current. Reflects the worktree convention and the
+fleet-wide "humans review human PRs" posture as of 2026-04-22.
+The release-workflow exception (agent merges release PRs via
+`st-merge-when-green`) lives in the
+[`publish` skill](#publish), not here.
 
 ## publish
 
@@ -151,12 +129,16 @@ three modes:
 summary, invokes SOC capture, or the skill is invoked via
 handoff protocols.
 
-**Status.** Current, with an open clarification: earlier session
-notes referred to a separate `soc-capture` concept as if it were
-distinct from the `soc` mode inside `summarize`. Whether those
-are actually the same thing — or whether `soc` should become its
-own top-level skill — is tracked in
-[plugin#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58).
+**Status.** Current. Decision A from
+[plugin#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58):
+this skill's SOC mode is the canonical SOC capture mechanism for
+the fleet. Repo-local references to `soc-capture` or
+`summarize-soc` as skill names are stale pointers — splitting
+SOC into its own skill was rejected because capture and summary
+are intertwined here (`End SOC` triggers the structured summary).
+The cross-repo references in `the-infrastructure-mindset` are
+tracked for cleanup in
+[the-infrastructure-mindset#165](https://github.com/wphillipmoore/the-infrastructure-mindset/issues/165).
 
 ## How skills work — technical
 

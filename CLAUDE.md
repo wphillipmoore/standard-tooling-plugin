@@ -76,6 +76,22 @@ Rules for this session:
 
 All fields are required.
 
+## Starting work on an issue
+
+When the user references a GitHub issue and wants work to begin on
+it, follow the procedure in
+[`docs/development/starting-work-on-an-issue.md`](docs/development/starting-work-on-an-issue.md).
+It covers: resolving project / cross-repo / repo-local issue
+inputs to a repo-local issue number, sub-issue creation when work
+spans repos, existing-worktree and existing-remote-branch
+detection, and the canonical `git worktree add` invocation that
+honors the worktree convention.
+
+This replaces the former `branch-workflow` skill. The substance is
+the same; the format is now agent-instruction documentation rather
+than a slash-command, since the procedure was rarely invoked
+cold and is most useful as a reference at the moment work begins.
+
 ## Shell command policy
 
 **Do NOT use heredocs** (`<<EOF` / `<<'EOF'`) for multi-line arguments to CLI
@@ -162,3 +178,19 @@ after a new release, the canonical sequence is in the README's
 the sequence is three steps (`marketplace update` → `update` →
 `reload-plugins`) and each is required. The non-interactive CLI
 form is `claude plugin update <plugin>@<marketplace>`.
+
+## Development and deployment of this repo
+
+Working on the plugin itself (vs. consuming it) has its own
+canonical procedure. See
+[`README.md` → Development and deployment](README.md#development-and-deployment)
+for: worktree setup, the `pr-workflow` skill for shipping a
+change, the `publish` skill for cutting a release, and the
+**post-publish Phase 7 hand-off** which is the producer-side
+obligation to surface the consumer-refresh sequence to the user
+at release time.
+
+When you complete a publish, **the cycle is not done until you
+have shown the user the three-step refresh sequence.** Listing
+artifacts and stopping is a regression on
+[#105](https://github.com/wphillipmoore/standard-tooling-plugin/issues/105).

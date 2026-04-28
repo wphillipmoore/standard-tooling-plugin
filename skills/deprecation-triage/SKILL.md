@@ -8,6 +8,7 @@ description: Triage deprecation warnings into a consistent workflow with issue t
 ## Table of Contents
 
 - [Overview](#overview)
+- [When to use](#when-to-use)
 - [Inputs](#inputs)
 - [Workflow](#workflow)
 - [Issue template](#issue-template)
@@ -17,6 +18,19 @@ description: Triage deprecation warnings into a consistent workflow with issue t
 
 Apply the deprecation warning triage policy to prevent warning drift and ensure
 issues are tracked and resolved in-cycle or deferred explicitly.
+
+## When to use
+
+The primary trigger is the `detect-deprecation-warnings` PostToolUse hook
+(`hooks/scripts/detect-deprecation-warnings.sh`). After any test command
+(`pytest`, `cargo test`, `go test`, etc.), the hook scans output for
+deprecation-warning patterns. When it finds one, it injects context telling the
+agent to invoke this skill after completing the current task.
+
+The skill can also be invoked directly via
+`/standard-tooling:deprecation-triage` when a deprecation warning surfaces
+outside the hook's scope (manual testing, log review, dependency changelog
+reading, etc.).
 
 ## Inputs
 

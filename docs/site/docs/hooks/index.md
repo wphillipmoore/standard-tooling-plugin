@@ -130,6 +130,37 @@ that *launch* the container cannot assume that environment.
 for key-value lookups. If you genuinely need associative arrays,
 the code belongs inside the container, not in host scripts.
 
+### enforce-host-container-split
+
+**What.** Checks the routing of every `st-*`, `gh`, `git`, and
+language-toolchain command against the canonical host-vs-container
+split from
+[#96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96).
+
+- **Denies** wrapping a host-only tool in `st-docker-run --`
+  (e.g., `st-docker-run -- gh issue list`). The host tool needs
+  SSH-agent, host git config, or host `gh` auth — the container
+  can't satisfy those.
+- **Warns** (via `additionalContext`, not deny) when a
+  container-only tool is invoked bare without `st-docker-run --`
+  (e.g., bare `ruff check .`). This sometimes works on hosts
+  with the tool installed but may silently use the wrong version.
+
+The canonical tool lists live in
+`hooks/scripts/lib/host-container-tools.sh` so the same source of
+truth powers both the hook and any future docs/lint.
+
+**Why.** The drift that produced #96 — 47 days of agents silently
+wrapping host tools in the container — was caused by documentation
+being the only enforcement mechanism. This hook makes the routing
+rule mechanical.
+
+**Alternative.** For denied commands: invoke the host tool
+directly (drop the `st-docker-run --` prefix). For warned
+commands: wrap the container tool in `st-docker-run --`. See the
+[`publish` skill's host-vs-container section](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands)
+for the canonical split and rationale.
+
 ## PreToolUse Hooks — Write|Edit
 
 *(none currently active — `block-memory-writes` was removed on
@@ -166,25 +197,6 @@ while the context is fresh.
 skill — either fix it now or capture it in a tracking issue with
 clear resolution criteria.
 
-## Stop Hooks
-
-### stop-guard-finalization
-
-**What.** Blocks session exit if a PR was submitted in this session
-but `st-finalize-repo` was not run afterward. Checks the
-transcript for `st-submit-pr` and `st-finalize-repo` invocations.
-
-**Why.** Prevents the "submitted a PR, never finalized" failure
-mode where local state stays on a merged feature branch and future
-work starts from a stale base. This is a soft enforcement of the
-same lifecycle the `remind-finalize` PostToolUse hook encourages.
-
-**Override.** The hook honors `stop_hook_active=true` to prevent
-infinite loops — if a Stop hook has already continued the session
-once, it won't block again. In normal use: finalize the PR before
-trying to end the session, or (if the PR has legitimately not
-merged yet) check with `gh pr view` and wait.
-
 ## Hooks deliberately not provided
 
 ### Per-edit linting / validation
@@ -219,6 +231,32 @@ runs the pre-commit git hook — so there's a hard gate between
 should resist the impulse to re-add per-edit validation as a
 "missing feature." The cost-per-value math doesn't work; the gap
 is intentional.
+
+### Stop hook for finalization
+
+The plugin no longer ships a Stop hook that blocks session exit
+on "PR submitted but `st-finalize-repo` not run." That hook
+(`stop-guard-finalization.sh`) was removed in
+[#56](https://github.com/wphillipmoore/standard-tooling-plugin/issues/56).
+
+**Why removed.** Under the current "humans review and merge
+feature/bugfix PRs" posture, the agent submits a PR, waits for
+CI green, hands off to the user, and **stops** — that's the
+correct end of the work cycle. Finalization happens in a later
+session, after the user reports the merge. The hook would have
+fired on every correct exit, blocking the desired behavior.
+
+**What replaces it.** The
+[`pr-workflow` skill](../skills/index.md#pr-workflow)'s
+"After the merge" section documents the user-prompted finalize
+flow. The
+[`remind-finalize`](#remind-finalize) PostToolUse hook still
+emits a reminder after `st-submit-pr` so the agent knows to run
+`st-finalize-repo` once the merge is reported.
+
+**Don't re-add this.** Re-adding a session-end finalize gate
+would block the standard PR submission workflow and force agents
+into broken cleanup behavior just to satisfy the hook.
 
 ## How hooks work — technical
 

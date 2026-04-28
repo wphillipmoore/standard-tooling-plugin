@@ -24,6 +24,6 @@ jobs:
           fetch-depth: 0
 
       - name: Deploy docs
-        uses: wphillipmoore/standard-actions/actions/docs-deploy@develop
+        uses: wphillipmoore/standard-actions/actions/docs-deploy@v1.3
         with:
           version-command: jq -r '.version | split(".") | .[0:2] | join(".")' .claude-plugin/plugin.json

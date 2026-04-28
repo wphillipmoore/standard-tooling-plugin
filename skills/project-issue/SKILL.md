@@ -1,6 +1,6 @@
 ---
 name: project-issue
-description: Create a well-structured project issue by collecting required attributes through guided questions.
+description: Create a well-structured GitHub issue by collecting required attributes through guided questions.
 ---
 
 # New issue
@@ -9,11 +9,8 @@ description: Create a well-structured project issue by collecting required attri
 
 - [Overview](#overview)
 - [Workflow](#workflow)
-  - [Select project](#select-project)
-  - [Select target repository](#select-target-repository)
+  - [Determine target repository](#determine-target-repository)
   - [Collect issue type](#collect-issue-type)
-  - [Collect priority](#collect-priority)
-  - [Collect work type](#collect-work-type)
   - [Collect summary](#collect-summary)
   - [Collect problem or goal](#collect-problem-or-goal)
   - [Collect acceptance criteria](#collect-acceptance-criteria)
@@ -27,48 +24,31 @@ description: Create a well-structured project issue by collecting required attri
 Create a single GitHub issue by walking the human through a series of
 questions that collect all fields required by the GitHub issue standards.
 The skill enforces the minimum required structure (Summary, Problem/Goal,
-Acceptance Criteria, Validation) and assigns the issue to a GitHub Project.
+Acceptance Criteria, Validation) and applies a label.
 
 ### Tooling
 
-This skill runs on the **host**. Almost all commands run inside the dev
-container via `st-docker-run`, which mounts the repo at `/workspace` and
-passes through `GH_TOKEN` and other environment variables automatically.
+This skill runs entirely on the **host**. All commands — `git`, `gh`,
+and the `st-*` CLI tools below — are host commands invoked directly
+without `st-docker-run` wrapping. See the
+[`publish` skill's host-vs-container section](../publish/SKILL.md#host-vs-container-commands)
+for the canonical split and rationale
+([#96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96)).
 
-**Host commands** — run directly:
+**Commands used:**
 
 - `git` — local git operations
+- `gh` — GitHub CLI (issue creation)
+- `st-ensure-label` — create a label if it doesn't exist
 
-**Container commands** — run via `st-docker-run`:
-
-- `gh` — all GitHub CLI operations
-- `st-list-project-repos`, `st-ensure-label`, `st-set-project-field`
-
-Search for `st-docker-run` in this order:
-
-1. `../standard-tooling/.venv-host/bin/st-docker-run` (sibling checkout
-   with host venv)
-2. `st-docker-run` on PATH (already installed)
-
-If neither is found, **abort** with a message directing the user to set up
-the host venv:
-
-```text
-st-docker-run not found. Run the following one-time setup:
-  cd ../standard-tooling
-  UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
-```
-
-Resolve `st-docker-run` once at the start of the workflow and use the
-resolved path for all subsequent container command invocations. Also verify
-`GH_TOKEN` is set in the environment before proceeding.
+Verify `GH_TOKEN` is set in the environment before proceeding.
 
 ### Interaction modes
 
 Each collection step uses one of two interaction modes:
 
 - **Selection** — Use `AskUserQuestion` when the user picks from a fixed
-  set of options (project, repository, issue type, priority, work type).
+  set of options (repository, issue type).
 - **Free-text** — Ask via a plain conversational message and wait for the
   user's reply. Do NOT use `AskUserQuestion` for open-ended input such as
   the issue title, problem description, or acceptance criteria details.
@@ -83,43 +63,15 @@ If a command is not documented here, it is not needed.
 
 ## Workflow
 
-### Select project
+### Determine target repository
 
-> Interaction mode: **selection**
-
-Determine the repository owner from the working directory:
+Default to the current repository (from the working directory):
 
 ```bash
-gh repo view --json owner --jq '.owner.login'
+gh repo view --json nameWithOwner --jq '.nameWithOwner'
 ```
 
-List available GitHub Projects:
-
-```bash
-gh project list --owner <owner> \
-  --format json \
-  --jq '.projects[] | [.number, .title] | @tsv'
-```
-
-Ask the user to select one. Default to the project associated with the
-current repository if identifiable. If only one project exists, select it
-automatically and confirm.
-
-**Captures**: `owner`, `project_number`, `project_name`.
-
-### Select target repository
-
-> Interaction mode: **selection**
-
-List the repositories linked to the selected project:
-
-```bash
-st-list-project-repos --owner <owner> --project <project_number>
-```
-
-Output is one `owner/repo` per line. Ask the user which repository the
-issue should be created in. Default to the current repository (determined
-from the working directory) if it appears in the list.
+If the user specifies a different repository, use that instead.
 
 **Captures**: `target_repo` (as `owner/repo`).
 
@@ -144,41 +96,6 @@ st-ensure-label --repo <target_repo> --label <label>
 ```
 
 **Captures**: `label`, `title_prefix`.
-
-### Collect priority
-
-> Interaction mode: **selection**
-
-Ask the user for the priority:
-
-| Priority | Meaning                        |
-| -------- | ------------------------------ |
-| P0       | Now — immediate work           |
-| P1       | Next — next up after current   |
-| P2       | Later — backlog                |
-
-This is set as a project field after the issue is added to the project.
-
-**Captures**: `priority` (e.g. `P0`).
-
-### Collect work type
-
-> Interaction mode: **selection**
-
-Ask the user for the work type:
-
-| Work Type         | When to use                                  |
-| ----------------- | -------------------------------------------- |
-| feature           | New functionality                            |
-| bugfix            | Fixing broken behavior                       |
-| docs              | Documentation-only changes                   |
-| research          | Investigation or spike                       |
-| sync              | Cross-repo propagation                       |
-| dependency-update | Dependency version bump                      |
-
-This is set as a project field after the issue is added to the project.
-
-**Captures**: `work_type`.
 
 ### Collect summary
 
@@ -234,12 +151,9 @@ The user may also provide a custom response via the "Other" option.
 Assemble the issue and present it to the user for review:
 
 ```text
-Project: <project_name>
 Repository: <target_repo>
 Title: <title>
 Labels: <label>
-Priority: <priority>
-Work Type: <work_type>
 
 ## Problem / Goal
 
@@ -254,9 +168,7 @@ Work Type: <work_type>
 <validation>
 ```
 
-After user approval, execute the following steps in order.
-
-**Step 1 — Create the issue.** Write the body to a temp file and create:
+After user approval, write the body to a temp file and create:
 
 ```bash
 gh issue create --repo <target_repo> \
@@ -266,38 +178,12 @@ gh issue create --repo <target_repo> \
 
 Capture the issue URL from stdout.
 
-**Step 2 — Add to project.** Add the issue and capture the item ID:
-
-```bash
-gh project item-add <project_number> \
-  --owner <owner> --url <issue_url> \
-  --format json --jq '.id'
-```
-
-**Step 3 — Set priority:**
-
-```bash
-st-set-project-field \
-  --owner <owner> --project <project_number> \
-  --item <item_id> --field Priority \
-  --value <priority>
-```
-
-**Step 4 — Set work type:**
-
-```bash
-st-set-project-field \
-  --owner <owner> --project <project_number> \
-  --item <item_id> --field "Work Type" \
-  --value <work_type>
-```
-
 ### Report
 
-Display the issue URL and project assignment confirmation.
+Display the issue URL.
 
 ## Resources
 
-- `docs/code-management/github-issues.md`
-- `docs/code-management/github-projects.md`
-- `docs/code-management/commit-messages-and-authorship.md`
+- `docs/code-management/github-issues.md` (in `standard-tooling`)
+- `docs/code-management/commit-messages-and-authorship.md` (in
+  `standard-tooling`)

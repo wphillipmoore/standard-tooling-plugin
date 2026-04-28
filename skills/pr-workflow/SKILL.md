@@ -1,6 +1,6 @@
 ---
 name: pr-workflow
-description: Guide pull request creation, submission, and finalization using the canonical PR workflow.
+description: Submit a pull request, wait for CI to go green, and hand off to the user for review and merge. Runs from inside the issue's worktree.
 ---
 
 # PR workflow
@@ -9,107 +9,227 @@ description: Guide pull request creation, submission, and finalization using the
 
 - [Overview](#overview)
 - [Preflight](#preflight)
-- [Pre-submission steps](#pre-submission-steps)
+- [Pre-submission](#pre-submission)
 - [Submission](#submission)
-- [Finalization](#finalization)
+- [Wait for CI green](#wait-for-ci-green)
+- [Hand-off to the user](#hand-off-to-the-user)
+- [After the merge](#after-the-merge)
 - [Resources](#resources)
 
 ## Overview
 
-Execute the full pull request lifecycle: validate, submit, merge, and clean up.
-This skill runs to completion without intermediate checkpoints. Auto-merge is
-always enabled; CI gates are the sole merge authority.
+This skill covers the agent-side of the work cycle from "branch is
+ready for review" through "PR is merged and local state is clean."
+The flow is:
 
-## Host vs container commands
+1. **Submit** the PR via `st-submit-pr`.
+2. **Wait** for CI to go green. Fix red checks if fixable; surface
+   to the user otherwise.
+3. **Hand off** to the user — they review and merge. The agent
+   does not enable auto-merge and does not merge the PR itself.
+4. **Finalize** after the user reports the merge, by running
+   `st-finalize-repo`.
 
-This skill runs on the **host**. Almost all commands run inside the dev
-container via `st-docker-run`, which mounts the repo at `/workspace` and
-passes through `GH_TOKEN` and other environment variables automatically.
+### Critical policy: humans review and merge feature/bugfix PRs
 
-**Host commands** — run directly:
+Org-wide auto-merge is disabled. **Do not enable auto-merge.** Do
+not merge the PR. Wait for a human reviewer, who will merge it
+manually after review.
 
-- `git` — local git operations (checkout, branch, push)
+The single documented exception is release-workflow PRs (the
+`release/<version>` PR and the `chore/bump-version-<next>` PR),
+which the agent merges via `st-merge-when-green` from the
+[`publish` skill](../publish/SKILL.md). That exception applies
+only there; do not generalize it.
 
-**Container commands** — run via `st-docker-run`:
+### Where this runs
 
-- `gh` — all GitHub CLI operations
-- `st-submit-pr`, `st-finalize-repo`
-- Validation commands
+Run all git operations and `st-*` invocations from inside the
+issue's worktree at `.worktrees/issue-<N>-<slug>/`. Per the
+worktree convention, the main checkout is read-only and PR work
+flows through the worktree.
 
-### Locating st-docker-run
-
-Search for `st-docker-run` in this order:
-
-1. `../standard-tooling/.venv-host/bin/st-docker-run` (sibling checkout
-   with host venv)
-2. `st-docker-run` on PATH (already installed)
-
-If neither is found, **abort** with a message directing the user to set up
-the host venv:
-
-```text
-st-docker-run not found. Run the following one-time setup:
-  cd ../standard-tooling
-  UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
-```
-
-Resolve `st-docker-run` once during preflight and use the resolved path
-for all subsequent container command invocations.
+The release/git tools used here (`st-submit-pr`, `st-finalize-repo`,
+`gh`, `git`) are **host commands** — invoke them directly without
+`st-docker-run --` wrapping. See the
+[`publish` skill's host-vs-container section](../publish/SKILL.md#host-vs-container-commands)
+for the canonical split.
 
 ## Preflight
 
-- Confirm you are working on a short-lived branch per branching rules.
-- If no primary issue exists, create one immediately using best-effort
-  assumptions and note them in the issue body. Do not ask for an issue number
-  unless acceptance criteria are materially ambiguous.
-- Locate `st-docker-run` using the search algorithm above. If not found,
-  **abort** with setup instructions.
-- Verify `GH_TOKEN` is set in the environment. If not, **abort**.
-- Locate the pull request template at `.github/pull_request_template.md`.
-- Ensure commit message format and AI co-authorship requirements are met per
-  the commit standards and the repo's approved AI identity list.
+- Confirm a worktree+branch exists for the issue you're working on.
+  If not, follow
+  [`docs/development/starting-work-on-an-issue.md`](../../docs/development/starting-work-on-an-issue.md)
+  before invoking this skill.
+- Confirm you are inside that worktree (`pwd` should resolve to a
+  path under `.worktrees/issue-<N>-<slug>/`).
+- If no primary issue exists, create one immediately using
+  best-effort assumptions and note them in the issue body. Do not
+  ask for an issue number unless acceptance criteria are
+  materially ambiguous.
+- Verify `GH_TOKEN` is set in the environment. If not, **abort**
+  with the install pointer.
+- Locate the pull-request template at
+  `.github/pull_request_template.md` if present; use its fields.
+- Ensure commit-message format and AI co-authorship requirements
+  are met per the commit standards (handled by `st-commit`; this
+  skill does not commit).
 
-## Pre-submission steps
+## Pre-submission
 
-1. Run the repository's canonical validation command if documented.
-2. If no canonical command exists, ask for the required validation steps.
-3. If any check fails, do not submit the PR; fix and rerun the full checks.
-4. Populate the pull request template fields.
-5. Include issue linkage using any standard GitHub closing keyword —
-   `Fixes #N`, `Closes #N`, or `Resolves #N` (all auto-close on merge) —
-   or `Ref #N` (non-closing; use when acceptance criteria exist).
+1. Run the repository's canonical validation command if documented
+   (typically `st-validate-local`).
+2. If no canonical command exists, ask the user for the required
+   validation steps.
+3. If any check fails, **do not submit** the PR. Fix the failures
+   and re-run validation. Loop until clean.
+4. Populate the PR template fields. Required:
+   - Issue linkage using a standard GitHub keyword: `Fixes #N`,
+     `Closes #N`, `Resolves #N` (all auto-close on merge), or
+     `Ref #N` (non-closing; use when acceptance criteria still
+     apply or when the issue should outlive the merge).
 
 ## Submission
 
-1. Push the branch and create the PR.
-2. Enable auto-merge immediately. Do not attempt manual merge.
-3. Wait for CI to pass and auto-merge to complete.
+Submit via `st-submit-pr` from inside the worktree. The tool
+constructs a standards-compliant PR body, pushes the branch, and
+opens the PR. Example invocation shape:
 
-If a CI check fails due to PR metadata (e.g., missing issue linkage), editing
-the PR body and re-running the workflow will not fix it — re-runs use the
-original event payload. Push a new commit to trigger a fresh workflow run.
+```bash
+st-submit-pr \
+  --issue <N> \
+  --summary "<one-line summary>" \
+  --linkage <Fixes|Closes|Resolves|Ref> \
+  --notes "<PR body content; pass multi-line via $(cat <file>) per the
+           shell command policy in CLAUDE.md>"
+```
 
-## Finalization
+After `st-submit-pr` returns the PR URL, **do not enable
+auto-merge** and **do not attempt to merge**.
 
-After the PR merges, run `st-finalize-repo` from the repository root.
-The tool switches to the target branch, fast-forward pulls from origin,
-deletes merged local branches, and prunes stale remotes. `st-finalize-repo`
-is a host command — see [issue #96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96)
-for the host-vs-container split rationale. If it is not available,
-perform the steps manually:
+If a CI check fails due to PR metadata (e.g., missing issue
+linkage), editing the PR body and re-running the workflow does
+not fix it — re-runs use the original event payload. Push a new
+commit to trigger a fresh workflow run.
 
-1. Switch to the target branch and pull latest from origin.
-2. Delete the local feature branch.
-3. Prune stale remote-tracking references.
+## Wait for CI green
 
-Then run final validation.
+This step is mandatory. **Do not hand off to the user with a PR
+that has red or pending checks.** Most CI failures are agent-
+fixable in seconds; round-tripping through the user adds hours
+of latency for nothing.
 
-Finalization is mandatory. Do not stop after submission or ask for permission
-to finalize.
+Poll the PR's required checks:
+
+```bash
+gh pr checks <pr-url> --watch --required
+```
+
+`gh pr checks --watch` blocks until all required checks complete
+and exits non-zero if any required check failed.
+
+### If checks pass
+
+Continue to [Hand-off](#hand-off-to-the-user).
+
+### If checks fail
+
+Read the failure logs:
+
+```bash
+gh pr checks <pr-url> --json name,state,link \
+  --jq '.[] | select(.state == "FAILURE")'
+```
+
+Then decide whether the failure is agent-fixable:
+
+- **Agent-fixable** (lint regression, missing format, simple test
+  break, etc.): fix the issue locally, commit the fix via
+  `st-commit`, push, and re-poll. Loop until the checks go green
+  or the failure surfaces as not-fixable.
+- **Not agent-fixable** (genuine ambiguity, missing context,
+  unclear requirement, infrastructure failure): hand off to the
+  user with the failure captured. Do **not** hand off with a bare
+  "PR ready for review" — name the failed check, the failure
+  reason, and what's needed.
+
+## Hand-off to the user
+
+Only after CI is green, surface to the user:
+
+- The PR URL.
+- The fact that CI is green and the PR is ready for review.
+- Any context the user needs to make the review call efficient
+  (key files changed, decisions to validate, etc.).
+
+After hand-off, **stop the work cycle**. Do not poll for the
+merge. The user reviews, merges, and notifies the agent when
+that's complete (typically just by saying "merged" or pasting
+the merge confirmation).
+
+## After the merge
+
+When the user reports the merge — usually a short message like
+"merged," "104 merged," or a paste of the merge confirmation —
+run `st-finalize-repo` from inside the worktree:
+
+```bash
+cd <absolute-worktree-path>
+st-finalize-repo
+```
+
+`st-finalize-repo` is worktree-aware: it switches to the target
+branch, fast-forward pulls origin, deletes the merged feature
+branch and its worktree, and prunes stale remote-tracking refs.
+
+If the script raises a non-fatal error on a sibling worktree
+(e.g., another agent's in-flight work with uncommitted files),
+verify the develop pull and merged-branch deletion succeeded
+manually with `git log --oneline -3` and `git worktree list`. Do
+not force-remove sibling worktrees.
+
+### Verify post-merge async workflows
+
+A PR is not "done" until every async workflow triggered by the
+merge has succeeded. The repository's `docs/repository-standards.md`
+lists the post-merge async workflows in its "Post-merge async
+workflows" section. Verify each one.
+
+For each workflow in the table:
+
+1. **Identify the run.** Poll until a run for the merge commit
+   appears (typically under 60 seconds):
+
+   ```bash
+   gh run list --workflow <workflow>.yml --branch develop \
+     --limit 1 --json conclusion,status,url --jq '.[0]'
+   ```
+
+2. **Wait for completion.** If still in progress:
+
+   ```bash
+   gh run watch --exit-status <run-id>
+   ```
+
+3. **Evaluate the result.**
+   - `conclusion == "success"`: pass. Move to the next workflow.
+   - `conclusion == "failure"`: **surface to the user immediately.**
+     Report the workflow name, run URL, and failing step. Do not
+     auto-recover or retry — a failed post-merge workflow means
+     the downstream artifact (docs site, container image, etc.)
+     is stale until the failure is resolved.
+
+If the repository profile lists no post-merge async workflows,
+skip this step.
+
+This concludes the work cycle.
 
 ## Resources
 
+- [`docs/development/starting-work-on-an-issue.md`](../../docs/development/starting-work-on-an-issue.md)
+  — issue resolution + worktree+branch creation (the predecessor
+  to invoking this skill)
+- [`publish` skill](../publish/SKILL.md) — covers release-PR
+  workflow including the `st-merge-when-green` exception
 - `docs/code-management/pull-request-workflow.md`
-- `docs/code-management/branching/branching-and-deployment.md`
 - `docs/code-management/commit-messages-and-authorship.md`
-- `docs/standards-and-conventions.md`

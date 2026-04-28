@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.5] - 2026-04-28
+
+### Documentation
+
+- audit: rationalize skill catalog as a coherent dev+deploy toolkit
+- publish + pr-workflow: docs.yml verification, Phase 6 closure, Phase 7 hand-off
+- summarize: keep three-mode unified skill; SOC mode is canonical for the fleet
+- complete audit steps 6-7, align host/container routing (#96)
+
+### Features
+
+- pr-workflow: verify post-merge async workflows from repository profile
+- enforce host-vs-container tool routing per #96
+- publish: verify cross-repo image rebuild for standard-tooling releases
+
+### Refactoring
+
+- eliminate branch-workflow skill; extract substance to starting-work-on-an-issue.md
+- rewrite pr-workflow for worktree convention + humans-review posture
+- project-issue: strip GitHub Projects integration, remove add-to-project workflow
+
 ## [1.4.4] - 2026-04-27
 
 ### Documentation
