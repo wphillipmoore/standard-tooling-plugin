@@ -31,37 +31,23 @@ Acceptance Criteria, Validation) and assigns the issue to a GitHub Project.
 
 ### Tooling
 
-This skill runs on the **host**. Almost all commands run inside the dev
-container via `st-docker-run`, which mounts the repo at `/workspace` and
-passes through `GH_TOKEN` and other environment variables automatically.
+This skill runs entirely on the **host**. All commands — `git`, `gh`,
+and the `st-*` CLI tools below — are host commands invoked directly
+without `st-docker-run` wrapping. They are thin Python wrappers around
+the GitHub API via `gh` / `GH_TOKEN`. See the
+[`publish` skill's host-vs-container section](../publish/SKILL.md#host-vs-container-commands)
+for the canonical split and rationale
+([#96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96)).
 
-**Host commands** — run directly:
+**Commands used:**
 
 - `git` — local git operations
+- `gh` — GitHub CLI (issue creation, project operations)
+- `st-list-project-repos` — list repos linked to a GitHub Project
+- `st-ensure-label` — create a label if it doesn't exist
+- `st-set-project-field` — set a field value on a project item
 
-**Container commands** — run via `st-docker-run`:
-
-- `gh` — all GitHub CLI operations
-- `st-list-project-repos`, `st-ensure-label`, `st-set-project-field`
-
-Search for `st-docker-run` in this order:
-
-1. `../standard-tooling/.venv-host/bin/st-docker-run` (sibling checkout
-   with host venv)
-2. `st-docker-run` on PATH (already installed)
-
-If neither is found, **abort** with a message directing the user to set up
-the host venv:
-
-```text
-st-docker-run not found. Run the following one-time setup:
-  cd ../standard-tooling
-  UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
-```
-
-Resolve `st-docker-run` once at the start of the workflow and use the
-resolved path for all subsequent container command invocations. Also verify
-`GH_TOKEN` is set in the environment before proceeding.
+Verify `GH_TOKEN` is set in the environment before proceeding.
 
 ### Interaction modes
 

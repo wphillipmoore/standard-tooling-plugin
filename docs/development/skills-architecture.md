@@ -235,10 +235,17 @@ session — it doesn't say *how* to update Python deps vs. CI action
 versions vs. doc-toolchain pins. Each category needs its own
 concrete commands.
 
-**Status: REWRITE / EXPANSION.** The skill needs to actually
-encode what to run for each dependency category named in the
-`publish` skill's Phase 5 ("Dependency update categories"). Right
-now it documents a process by reference; it should drive it.
+**Status (audit): REWRITE / EXPANSION.**
+
+**Status (post-audit): COMPLETE.** Full rewrite. The skill now
+encodes concrete commands per dependency category (library deps
+via `uv lock --upgrade`, CI action pins, runtime versions, doc
+toolchain, linters, test frameworks, build tools). Validation
+uses `st-validate-local`. Failure handling structured around the
+anchored dependency record workflow. Anchor review is a
+first-class section: every sweep checks existing anchors for
+exit-criteria resolution. Submission hands off explicitly to
+`pr-workflow`.
 
 **Folds in:** none currently filed; the audit surfaces this.
 
@@ -256,9 +263,12 @@ explicit pointer in either direction. Otherwise unchanged.
 **Slash-command runnability.** Yes for the core triage flow when
 invoked with a warning in hand.
 
-**Status: MINOR POLISH.** Make the hook→skill seam explicit (a
-sentence in the skill's "When to use," and a corresponding
-mention in the hook's docstring or hooks reference doc).
+**Status (audit): MINOR POLISH.**
+
+**Status (post-audit): COMPLETE.** Added a "When to use" section
+naming the `detect-deprecation-warnings` PostToolUse hook as the
+primary trigger, with a note that the skill can also be invoked
+directly for warnings outside the hook's scope.
 
 **Folds in:** none currently filed.
 
@@ -397,7 +407,7 @@ issue.
 Recommended sequence. Each step is a focused PR closing one or
 more existing issues and referencing #114.
 
-### 1. ~~`branch-workflow` rewrite~~ → eliminate `branch-workflow`, extract to doc (closes #55) — DONE
+### 1. Eliminate `branch-workflow`, extract to doc (closes #55) — DONE
 
 **Status update (post-audit, 2026-04-27): completed.** After
 discussion the user pushed back on whether `branch-workflow`
@@ -459,7 +469,7 @@ CI-green-wait per #85, worktree-aware finalization, pointer to
 acceptance, and the cross-ecosystem follow-up issues (per-repo
 deploy docs for `standard-tooling`,
 `standard-tooling-docker`, `standard-actions`) mentioned in
-#105's acceptance. Both are bigger than the audit's step 3
+issue 105's acceptance. Both are bigger than the audit's step 3
 scope and tracked separately.
 
 ### 4. `summarize` decision (closes #58) — DONE
@@ -482,25 +492,36 @@ to fix the stale references in that repo (CLAUDE.md, AGENTS.md,
 skills/article-workflow/SKILL.md). That work happens in a
 separate agent session per the user's instruction.
 
-### 5. `project-issue` framing patch
+### 5. `project-issue` scope discussion — DEFERRED
 
-Small. Fix the host/container intro section.
+**Status update (post-audit, 2026-04-28):** Per user feedback after
+merging #115, the scope expanded beyond a framing patch. GitHub
+Projects integration hasn't been load-bearing in recent fleet
+usage, raising questions about whether `project-issue` should
+default to "file in this repo, no project" when no project is
+configured. See the note on #114 for the full discussion scope.
+Deferred to a separate issue.
 
-### 6. `deprecation-triage` polish
+### 6. `deprecation-triage` polish — DONE
 
-Small. Make the hook→skill seam explicit.
+**Status update (post-audit, 2026-04-28): completed.** Added a
+"When to use" section that explicitly names the
+`detect-deprecation-warnings` PostToolUse hook as the primary
+trigger and describes the hook→skill seam. The hook already
+referenced the skill; now the skill references the hook.
 
-### 7. `dependency-update` rewrite/expansion
+### 7. `dependency-update` rewrite/expansion — DONE
 
-Last among the existing skills. Needs the work-cycle skills to be
-canonical first, so the "submit via PR" hand-off is clean.
-
-Scope:
-
-- Encode concrete commands per dependency category (Python deps,
-  CI action pins, doc toolchain, linters, runtime versions).
-- Reference `st-validate-local` as the canonical validation step.
-- Tighten the failure-handling around anchored records.
+**Status update (post-audit, 2026-04-28): completed.** Full
+rewrite. The skill now encodes concrete commands per dependency
+category (Python direct deps and lockfile via `uv lock`, CI
+action pins, runtime version pins, doc toolchain, linters, test
+frameworks, build tools). Validation uses `st-validate-local` as
+the canonical step. Failure handling is structured around the
+anchored dependency record workflow with explicit "never silently
+pin" policy. Submission hands off to `pr-workflow`. Added anchor
+review as a first-class section — every sweep must check existing
+anchors for exit-criteria resolution.
 
 ### 8. New-skill TODOs (filed during the work, not implemented in this PR)
 
