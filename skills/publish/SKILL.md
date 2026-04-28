@@ -18,7 +18,8 @@ description: Drive the end-to-end publish workflow for library, tooling, and doc
   - [Phase 3 — Merge bump PR](#phase-3--merge-bump-pr)
   - [Phase 4 — Confirm publish](#phase-4--confirm-publish)
   - [Phase 5 — Next-cycle dependency updates](#phase-5--next-cycle-dependency-updates)
-  - [Phase 6 — Close and finalize](#phase-6--close-and-finalize)
+  - [Phase 6 — Close tracking issue and finalize](#phase-6--close-tracking-issue-and-finalize)
+  - [Phase 7 — Consumer-refresh hand-off](#phase-7--consumer-refresh-hand-off)
 - [Docs-only mode](#docs-only-mode)
   - [Phase 1 — Confirm deployment](#phase-1--confirm-deployment)
   - [Phase 2 — Toolchain dependency updates](#phase-2--toolchain-dependency-updates)
@@ -270,22 +271,50 @@ behind external async work.
 
 ### Phase 4 — Confirm publish
 
-Block until the `publish.yml` workflow on `main` completes
-successfully, then verify all publish artifacts:
+Block until **both** asynchronous workflows triggered by the
+release-PR merge complete successfully:
 
-- Workflow run conclusion is `success`.
+1. `publish.yml` on `main` — tag, GitHub Release, package artifact
+   to the registry.
+2. `docs.yml` (or the repo's documentation deploy workflow) on
+   `main` — versioned docs site deploy.
+
+`docs.yml` is a separate async workflow from `publish.yml`. A
+release that tagged and published the package but whose docs
+failed to deploy is a half-shipped release that looks identical
+to a working one until a user tries to read the docs. Do not
+declare Phase 4 complete until both workflows succeed.
+
+Block on each workflow:
+
+```bash
+gh run watch --exit-status \
+  $(gh run list --workflow publish.yml --branch main --limit 1 --json databaseId --jq '.[0].databaseId')
+
+gh run watch --exit-status \
+  $(gh run list --workflow docs.yml --branch main --limit 1 --json databaseId --jq '.[0].databaseId')
+```
+
+Adjust the docs workflow filename if the repo uses a different
+name (e.g., `pages.yml`, `mkdocs.yml`).
+
+Then verify all publish artifacts:
+
+- Both workflow run conclusions are `success`.
 - Git tag `v<version>` on `main`.
 - Develop tag `develop-v<version>` for changelog boundaries.
 - GitHub Release created.
 - Package artifact published to the registry.
-- GitHub Pages documentation deployed for the new version.
+- GitHub Pages documentation deployed for the new version
+  (e.g., `mike list` shows the new version, or the docs site
+  serves the new version under its versioned URL).
 
-If `publish.yml` failed, follow the failure-handling procedure.
-A failed publish after successful PR merges leaves the repository
-half-released; surface the failure and stop.
+If either workflow failed, follow the failure-handling
+procedure. A failed publish after successful PR merges leaves
+the repository half-released; surface the failure and stop.
 
-Comment on the tracking issue with Phase 4 results (publish-run
-URL, list of artifacts confirmed).
+Comment on the tracking issue with Phase 4 results (both run
+URLs, list of artifacts confirmed).
 
 ### Phase 5 — Next-cycle dependency updates
 
@@ -297,14 +326,74 @@ URL, list of artifacts confirmed).
 5. Comment on the tracking issue with Phase 5 results (dependency update PR
    URL, categories updated).
 
-### Phase 6 — Close and finalize
+### Phase 6 — Close tracking issue and finalize
 
-1. Close the tracking issue with a final summary comment covering all phases.
-   All issue and PR references in the summary must be full URLs (not short
-   `#N` references) so they are clickable in the terminal.
-2. Run `st-finalize-repo` to return to a clean `develop`
-   branch. The script updates local `develop`, deletes merged branches, and
-   prunes stale remotes. Run final validation to confirm a clean state.
+**The release cycle is not complete until the tracking issue is
+closed with a summary comment.** Same posture as Phase 4: the
+repo's historical record is a release artifact, and an open
+tracking issue is an unfinished release as far as future readers
+can tell. Skipping this step is a failure to complete, not a
+nice-to-have.
+
+Order matters here. Close the tracking issue **before**
+`st-finalize-repo` so the historical record is sealed first; if
+finalize errors out (e.g., a sibling worktree blocks cleanup),
+the bookkeeping is still done.
+
+1. **Close the tracking issue with a final summary comment.**
+   Required content in the summary:
+
+   - All PR URLs (release PR, bump PR, any recovery PRs)
+   - Tag, develop tag, GitHub Release URLs
+   - `publish.yml` and `docs.yml` (or equivalent) run URLs from
+     Phase 4
+   - Any failures encountered and the resolutions
+
+   All issue and PR references in the summary must be full URLs
+   (not short `#N` references) so they are clickable in the
+   terminal.
+
+2. **Run `st-finalize-repo`** to return to a clean `develop`
+   branch. The script updates local `develop`, deletes merged
+   branches, and prunes stale remotes. Run final validation to
+   confirm a clean state.
+
+3. **Continue to Phase 7.** Phase 6 alone does not conclude the
+   cycle; the producer-side hand-off in Phase 7 is the actual
+   release boundary for consumers.
+
+### Phase 7 — Consumer-refresh hand-off
+
+The release artifacts are published, but **consumers haven't
+picked them up yet.** Every Claude Code session that has this
+plugin (or any standard-tooling-distributed plugin) installed
+needs an explicit local refresh — neither `docker run` nor
+`/plugin marketplace update` auto-pulls fresh content. The agent
+producing the release is responsible for surfacing the refresh
+step explicitly to the user. Listing artifacts and stopping is
+not the end of the cycle; saying "v\<version> shipped, now run
+the refresh sequence" is.
+
+Surface the consumer-side update sequence verbatim. For this
+repo (`standard-tooling-plugin`):
+
+```text
+/plugin marketplace update standard-tooling-marketplace
+/plugin update standard-tooling@standard-tooling-marketplace
+/reload-plugins
+```
+
+For other tool-providing repos (`standard-tooling`,
+`standard-tooling-docker`, `standard-actions`), use the
+repo-specific refresh sequence — see each repo's `Development
+and deployment` section in its README. If the repo doesn't
+document a refresh sequence, that's a gap to file separately;
+do not invent one.
+
+Phase 7 ends when the user has seen the refresh sequence in the
+hand-off message. The user is not required to *run* the
+sequence in this session; they are required to *see* it as
+part of the producer's hand-off.
 
 ## Docs-only mode
 

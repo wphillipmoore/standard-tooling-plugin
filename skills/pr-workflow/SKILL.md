@@ -188,6 +188,27 @@ verify the develop pull and merged-branch deletion succeeded
 manually with `git log --oneline -3` and `git worktree list`. Do
 not force-remove sibling worktrees.
 
+### Verify docs deploy
+
+If the repo has a `docs.yml` workflow (or equivalent) that
+deploys the dev docs site on push to `develop`, verify it
+succeeded for the merge commit. The run is asynchronous; it
+typically completes within 30–60 seconds of the merge.
+
+```bash
+gh run list --workflow docs.yml --branch develop --limit 1 \
+  --json conclusion,status,url --jq '.[0]'
+```
+
+- If `status == "completed" && conclusion == "success"`: pass.
+- If still in progress: wait briefly (`gh run watch --exit-status <run-id>`).
+- If failed: surface to the user. A failed docs deploy after a
+  merged PR means the dev docs site is stale; this is the same
+  silent-failure class as a release with broken docs.
+
+If the repo has no `docs.yml` (or the merged PR didn't touch
+docs), skip this step.
+
 This concludes the work cycle.
 
 ## Resources

@@ -206,9 +206,16 @@ that section is current. Outstanding issues:
 and v1.4.4 releases this session ran cleanly under it). Three
 gaps above are tracked patches, not blocking.
 
-**Status: PATCHES.**
+**Status (audit): PATCHES.**
 
-**Folds in:**
+**Status (post-audit): COMPLETE.** All three patches landed in
+the step-3 PR. Phase 4 now blocks on both `publish.yml` and
+`docs.yml`; Phase 6 closes the tracking issue with summary
+before `st-finalize-repo`; new Phase 7 surfaces the
+consumer-refresh sequence explicitly. `pr-workflow` got a
+matching post-merge docs-deploy verification step.
+
+**Resolved:**
 [#83](https://github.com/wphillipmoore/standard-tooling-plugin/issues/83),
 [#84](https://github.com/wphillipmoore/standard-tooling-plugin/issues/84),
 [#105](https://github.com/wphillipmoore/standard-tooling-plugin/issues/105).
@@ -413,17 +420,38 @@ explicit "humans review and merge feature/bugfix PRs" policy,
 CI-green-wait per #85, worktree-aware finalization, pointer to
 `starting-work-on-an-issue.md` from the preflight.
 
-### 3. `publish` skill patches (closes #83, #84, #105)
+### 3. `publish` skill patches (closes #83, #84, #105) — DONE
 
-Smaller scope; can run in parallel with #1 / #2 since publish is at
-the C-phase.
+**Status update (post-audit, 2026-04-28): completed.**
 
-Scope:
+- Phase 4 now blocks on **both** `publish.yml` and `docs.yml`
+  workflow completions (#84). Half-shipped releases with broken
+  docs no longer slip through.
+- Phase 6 prose tightened: the release cycle is **not complete**
+  until the tracking issue is closed with a full summary
+  comment. Step order changed so the tracking issue closes
+  *before* `st-finalize-repo` (the historical record gets
+  sealed even if finalize errors on a sibling worktree). #83.
+- New **Phase 7** added: producer-side consumer-refresh hand-off
+  (#105). The agent is responsible for surfacing the
+  three-step refresh sequence to the user as part of the
+  release boundary, not stopping after Phase 6 with an artifact
+  list.
+- `pr-workflow` got a parallel post-merge docs-deploy
+  verification step for the dev site (#84's pr-workflow
+  acceptance).
+- `README.md` got a new **Development and deployment** section
+  that distinguishes contributor obligations from consumer
+  obligations and surfaces Phase 7 explicitly. `CLAUDE.md`
+  references it.
 
-- Phase 6 auto-close tracking issue with summary template.
-- Phase 4 sanity-check `docs.yml` alongside `publish.yml`.
-- New post-Phase-6 hand-off: tell the user to run the
-  three-step refresh.
+**Out of scope (deferred follow-ups):** the cross-repo
+`docs.yml`-trigger audit document mentioned in #84's
+acceptance, and the cross-ecosystem follow-up issues (per-repo
+deploy docs for `standard-tooling`,
+`standard-tooling-docker`, `standard-actions`) mentioned in
+#105's acceptance. Both are bigger than the audit's step 3
+scope and tracked separately.
 
 ### 4. `summarize` decision (closes #58)
 
