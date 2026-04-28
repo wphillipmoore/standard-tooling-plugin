@@ -14,34 +14,12 @@ substantially change it.
 
 | Skill | Purpose | Status |
 |---|---|---|
-| [branch-workflow](#branch-workflow) | Ensure a correctly named branch exists for an issue | Current; worktree revision tracked in [#55](https://github.com/wphillipmoore/standard-tooling-plugin/issues/55) |
 | [pr-workflow](#pr-workflow) | Guide PR creation, submission, and finalization | Current; worktree + manual-merge revision tracked in [#56](https://github.com/wphillipmoore/standard-tooling-plugin/issues/56) |
 | [publish](#publish) | Drive library / tooling / documentation release flow | Needs review; rethink tracked in [#57](https://github.com/wphillipmoore/standard-tooling-plugin/issues/57) |
 | [project-issue](#project-issue) | Create a well-structured GitHub issue via guided questions | Current |
 | [dependency-update](#dependency-update) | Run the dependency-update workflow | Current (reviewed 2026-04-23, no changes) |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries | Current; relationship with `soc-capture` to be clarified in [#58](https://github.com/wphillipmoore/standard-tooling-plugin/issues/58) |
-
-## branch-workflow
-
-**What it does.** Ensures a correctly named feature / bugfix /
-hotfix / chore branch exists for a given issue before work starts.
-Handles project-to-repo issue resolution (when an issue lives in
-a GitHub Project on a different repo than the target), creates
-sub-issues for cross-repo work, and reuses existing branches when
-the current branch already matches.
-
-**When to use.** At the start of any work session that involves
-code changes. Typical invocation patterns: "start work on issue
-`#N`", "begin work on `<project issue URL>`", or pre-work prompts
-like `/paad:vibe` may invoke this internally.
-
-**Status.** Current. The worktree-convention revision
-(adopt the `.worktrees/issue-N-<slug>/` pattern from
-[standard-tooling#258](https://github.com/wphillipmoore/standard-tooling/issues/258))
-is tracked in
-[plugin#55](https://github.com/wphillipmoore/standard-tooling-plugin/issues/55)
-and will land as a distinct change.
 
 ## pr-workflow
 
