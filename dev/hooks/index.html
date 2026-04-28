@@ -826,6 +826,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#enforce-host-container-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      enforce-host-container-split
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1090,6 +1099,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#enforce-host-container-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      enforce-host-container-split
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1332,6 +1350,33 @@ that <em>launch</em> the container cannot assume that environment.</p>
 <p><strong>Alternative.</strong> Use parallel indexed arrays, or switch to awk/jq
 for key-value lookups. If you genuinely need associative arrays,
 the code belongs inside the container, not in host scripts.</p>
+<h3 id="enforce-host-container-split">enforce-host-container-split<a class="headerlink" href="#enforce-host-container-split" title="Permanent link">&para;</a></h3>
+<p><strong>What.</strong> Checks the routing of every <code>st-*</code>, <code>gh</code>, <code>git</code>, and
+language-toolchain command against the canonical host-vs-container
+split from
+<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/96">#96</a>.</p>
+<ul>
+<li><strong>Denies</strong> wrapping a host-only tool in <code>st-docker-run --</code>
+  (e.g., <code>st-docker-run -- gh issue list</code>). The host tool needs
+  SSH-agent, host git config, or host <code>gh</code> auth — the container
+  can't satisfy those.</li>
+<li><strong>Warns</strong> (via <code>additionalContext</code>, not deny) when a
+  container-only tool is invoked bare without <code>st-docker-run --</code>
+  (e.g., bare <code>ruff check .</code>). This sometimes works on hosts
+  with the tool installed but may silently use the wrong version.</li>
+</ul>
+<p>The canonical tool lists live in
+<code>hooks/scripts/lib/host-container-tools.sh</code> so the same source of
+truth powers both the hook and any future docs/lint.</p>
+<p><strong>Why.</strong> The drift that produced #96 — 47 days of agents silently
+wrapping host tools in the container — was caused by documentation
+being the only enforcement mechanism. This hook makes the routing
+rule mechanical.</p>
+<p><strong>Alternative.</strong> For denied commands: invoke the host tool
+directly (drop the <code>st-docker-run --</code> prefix). For warned
+commands: wrap the container tool in <code>st-docker-run --</code>. See the
+<a href="https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands"><code>publish</code> skill's host-vs-container section</a>
+for the canonical split and rationale.</p>
 <h2 id="pretooluse-hooks-writeedit">PreToolUse Hooks — Write|Edit<a class="headerlink" href="#pretooluse-hooks-writeedit" title="Permanent link">&para;</a></h2>
 <p><em>(none currently active — <code>block-memory-writes</code> was removed on
 2026-04-23 when feedback memory was re-enabled fleet-wide.)</em></p>
