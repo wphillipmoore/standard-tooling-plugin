@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.6/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.4/">
+        <link rel="next" href="../v1.4.6/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>v1.4.5 - Standard Tooling Plugin</title>
+        <title>v1.4.7 - Standard Tooling Plugin</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-145-2026-04-28" class="md-skip">
+        <a href="#release-147-2026-04-28" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              v1.4.5
+              v1.4.7
             
           </span>
         </div>
@@ -550,52 +550,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../v1.4.7/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    v1.4.7
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../v1.4.6/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    v1.4.6
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -613,7 +567,7 @@
   
   
   <span class="md-ellipsis">
-    v1.4.5
+    v1.4.7
     
   </span>
   
@@ -626,7 +580,7 @@
   
   
   <span class="md-ellipsis">
-    v1.4.5
+    v1.4.7
     
   </span>
   
@@ -666,19 +620,56 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#refactoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      Refactoring
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v1.4.6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.4.6
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v1.4.5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.4.5
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -970,15 +961,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#refactoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      Refactoring
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -995,35 +977,21 @@
 
 
 
-<h1 id="release-145-2026-04-28">Release 1.4.5 (2026-04-28)<a class="headerlink" href="#release-145-2026-04-28" title="Permanent link">&para;</a></h1>
+<h1 id="release-147-2026-04-28">Release 1.4.7 (2026-04-28)<a class="headerlink" href="#release-147-2026-04-28" title="Permanent link">&para;</a></h1>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>audit: rationalize skill catalog as a coherent dev+deploy toolkit</strong></li>
-<li><strong>publish + pr-workflow: docs.yml verification, Phase 6 closure, Phase 7 hand-off</strong></li>
-<li><strong>summarize: keep three-mode unified skill; SOC mode is canonical for the fleet</strong></li>
-<li><strong>complete audit steps 6-7, align host/container routing (#96)</strong></li>
+<li><strong>remove include directives and downgrade standards-and-conventions refs</strong></li>
 </ul>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
 <li>
-<p><strong>pr-workflow: verify post-merge async workflows from repository profile</strong>
-Generalize the docs-deploy-only verification to verify all async workflows listed in the repository profile. Add a Post-merge async workflows section to repository-standards.md that declares which workflows must succeed after a merge to develop. The pr-workflow skill reads this section and blocks finalization until all listed workflows report success.</p>
+<p><strong>publish: verify bump PR issue linkage before merge</strong>
+Phase 3 now checks the bump PR body for issue linkage before merging. If the version-bump-pr composite action's auto-discovery failed, the agent repairs the PR body with Ref #N, pushes an empty commit to retrigger CI, then merges.</p>
 </li>
 <li>
-<p><strong>enforce host-vs-container tool routing per #96</strong>
-PreToolUse hook that denies wrapping host tools in st-docker-run and warns on bare container tool invocations. Canonical tool lists in hooks/scripts/lib/host-container-tools.sh. Documented in hooks reference.</p>
+<p><strong>forbid auto-close linkage, require Ref and explicit issue closure</strong>
+Adds block-autoclose-linkage PreToolUse hook that denies --linkage Fixes/Closes/Resolves in st-submit-pr. Updates pr-workflow skill to require Ref linkage and close issues explicitly after finalization. Updates PR template and repository standards to match.</p>
 </li>
-<li>
-<p><strong>publish: verify cross-repo image rebuild for standard-tooling releases</strong>
-Phase 4 now watches the dispatched docker-publish.yml run in standard-tooling-docker after a standard-tooling release. Non-Python consumers get standard-tooling from the dev container image — a tagged release whose image rebuild fails is a partial deployment.</p>
-</li>
-</ul>
-<h2 id="refactoring">Refactoring<a class="headerlink" href="#refactoring" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>eliminate branch-workflow skill; extract substance to starting-work-on-an-issue.md</strong></li>
-<li><strong>rewrite pr-workflow for worktree convention + humans-review posture</strong></li>
-<li><strong>project-issue: strip GitHub Projects integration, remove add-to-project workflow</strong>
-GitHub Projects haven't been load-bearing for months. Strip project selection, st-list-project-repos, st-set-project-field, Priority/Work Type fields from the skill. Delete add-to-project.yml workflow. The skill now files issues directly in a repo with a label. Step 5 of the #114 audit.</li>
 </ul>
 
 
