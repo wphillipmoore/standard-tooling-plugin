@@ -84,10 +84,11 @@ for the canonical split.
 3. If any check fails, **do not submit** the PR. Fix the failures
    and re-run validation. Loop until clean.
 4. Populate the PR template fields. Required:
-   - Issue linkage using a standard GitHub keyword: `Fixes #N`,
-     `Closes #N`, `Resolves #N` (all auto-close on merge), or
-     `Ref #N` (non-closing; use when acceptance criteria still
-     apply or when the issue should outlive the merge).
+   - Issue linkage using `Ref #N`. **Do not use `Fixes`, `Closes`,
+     or `Resolves`** — those keywords auto-close the issue on
+     merge, bypassing finalization. Issues are closed explicitly
+     after `st-finalize-repo` confirms the work cycle is complete.
+     The `block-autoclose-linkage` hook enforces this mechanically.
 
 ## Submission
 
@@ -99,7 +100,7 @@ opens the PR. Example invocation shape:
 st-submit-pr \
   --issue <N> \
   --summary "<one-line summary>" \
-  --linkage <Fixes|Closes|Resolves|Ref> \
+  --linkage Ref \
   --notes "<PR body content; pass multi-line via $(cat <file>) per the
            shell command policy in CLAUDE.md>"
 ```
@@ -221,6 +222,26 @@ For each workflow in the table:
 
 If the repository profile lists no post-merge async workflows,
 skip this step.
+
+### Close the issue
+
+After finalization and post-merge workflow verification both
+succeed, close the linked issue:
+
+```bash
+gh issue close <N> --comment "Closed after finalization. PR: <pr-url>"
+```
+
+Issue closure happens here — not at merge time — because the work
+cycle is not complete until `st-finalize-repo` has reconciled
+local state. The `Ref #N` linkage used at submission time
+deliberately avoids auto-close so this explicit step is the only
+path to closure.
+
+If the PR used `Ref` (non-closing) linkage against an issue whose
+acceptance criteria span multiple PRs, **do not close the issue**.
+Only close when this PR completes the final piece of work the
+issue tracks.
 
 This concludes the work cycle.
 

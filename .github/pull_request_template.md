@@ -6,9 +6,9 @@
 
 ## Issue Linkage
 
-- Fixes # (default; use when no acceptance criteria exist)
-- Ref # (use when acceptance criteria exist)
-- Work is not complete until the issue is closed.
+- Ref #
+- Do not use `Fixes`, `Closes`, or `Resolves` — issues are closed
+  explicitly after finalization, not auto-closed at merge time.
 - If no issue exists, open one before any work begins.
 
 ## Testing
