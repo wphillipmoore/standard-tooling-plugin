@@ -1,29 +1,16 @@
 # Standard Tooling Plugin Agent Instructions
 
-<!-- include: docs/standards-and-conventions.md -->
-<!-- include: ./docs/repository-standards.md -->
-
 ## User Overrides (Optional)
 
 If `~/AGENTS.md` exists and is readable, load it and apply it as a
 user-specific overlay for this session. If it cannot be read, say so
 briefly and continue.
 
-## Canonical Standards
+## Standards reference
 
-This repository follows the canonical standards and conventions in the
-`standards-and-conventions` repository.
-
-Resolve the local path (preferred):
-
-- `../standards-and-conventions`
-
-If the local path is unavailable, use the canonical web source:
-
-- <https://github.com/wphillipmoore/standards-and-conventions>
-
-If the canonical standards cannot be retrieved, treat it as a fatal
-exception and stop.
+<https://github.com/wphillipmoore/standards-and-conventions> —
+historical reference; active standards documentation lives in the
+standard-tooling repository under `docs/`.
 
 ## Shared Skills
 
