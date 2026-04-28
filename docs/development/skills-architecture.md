@@ -275,20 +275,21 @@ directly for warnings outside the hook's scope.
 ### project-issue
 
 **What it does today.** Walks the user through structured issue
-creation (project, repo, type, priority, work type, summary,
-problem/goal, acceptance, validation), then files via `gh issue
-create`, adds to the project, sets fields.
+creation (repo, type, summary, problem/goal, acceptance,
+validation), then files via `gh issue create` with a label.
 
-**What's changed since.** Same outdated host/container framing
-as the other skills (the `gh` and `st-*` commands in the body are
-already correct host-direct invocations after #97; only the
-intro is wrong). Otherwise unchanged.
+**What's changed since.** GitHub Projects integration stripped
+(step 5 of the attack order). Project selection,
+`st-list-project-repos`, `st-set-project-field`, Priority and
+Work Type project fields all removed. `add-to-project.yml`
+workflow deleted. Host/container framing updated in PR #121.
 
-**Slash-command runnability.** Yes. This is the skill that has
-held up best.
+**Slash-command runnability.** Yes.
 
-**Status: FRAMING PATCH.** Update the "Tooling" intro section to
-match the host/container split.
+**Status (audit): FRAMING PATCH.**
+
+**Status (post-audit): COMPLETE.** Framing patch landed in
+PR #121. Full Projects removal landed in this PR (step 5).
 
 **Folds in:** none currently filed.
 
@@ -492,15 +493,21 @@ to fix the stale references in that repo (CLAUDE.md, AGENTS.md,
 skills/article-workflow/SKILL.md). That work happens in a
 separate agent session per the user's instruction.
 
-### 5. `project-issue` scope discussion — DEFERRED
+### 5. `project-issue` — strip GitHub Projects integration — DONE
 
-**Status update (post-audit, 2026-04-28):** Per user feedback after
-merging #115, the scope expanded beyond a framing patch. GitHub
-Projects integration hasn't been load-bearing in recent fleet
-usage, raising questions about whether `project-issue` should
-default to "file in this repo, no project" when no project is
-configured. See the note on #114 for the full discussion scope.
-Deferred to a separate issue.
+**Status update (post-audit, 2026-04-28): completed.** User
+decided to remove all GitHub Projects integration. Projects
+haven't been load-bearing for months — day-to-day issue work
+is per-repo with browser tabs. The overhead makes more sense
+for a team; for a solo practitioner the value doesn't justify
+the complexity.
+
+Changes: removed project selection, `st-list-project-repos`,
+`st-set-project-field`, Priority/Work Type project fields from
+the skill. Removed `add-to-project.yml` workflow. The skill now
+files issues directly in a repo with a label. Follow-up issues
+filed to remove `add-to-project.yml` from other fleet repos and
+to remove dead CLI tools from `standard-tooling`.
 
 ### 6. `deprecation-triage` polish — DONE
 
