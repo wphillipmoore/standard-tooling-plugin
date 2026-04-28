@@ -263,10 +263,24 @@ behind external async work.
    `gh pr list --head chore/bump-version-<next> --json url`.
    Retry until it appears (typically within ~60 seconds of
    Phase 2 completing).
-2. Run `st-merge-when-green <bump-pr-url>`.
-3. If CI fails, follow the failure-handling procedure — do not
+2. **Verify issue linkage.** Read the bump PR body and check for
+   a `Ref #N`, `Fixes #N`, `Closes #N`, or `Resolves #N`
+   reference. The `version-bump-pr` composite action auto-
+   discovers the tracking issue by title, but auto-discovery can
+   fail under edge conditions (indexing latency, title mismatch,
+   token-scope limits). If the PR body has no issue linkage:
+   1. Write a corrected body to a temp file that adds
+      `Ref #<tracking-issue-number>` (the tracking issue from
+      Phase 1).
+   2. Update the PR: `gh pr edit <bump-pr-url> --body-file <file>`.
+   3. Push an empty commit on the bump branch to retrigger CI
+      (editing the PR body alone does not retrigger workflows —
+      the `pr-issue-linkage` check evaluates the event payload
+      from the push, not the live PR body).
+3. Run `st-merge-when-green <bump-pr-url>`.
+4. If CI fails, follow the failure-handling procedure — do not
    retry or merge manually.
-4. Comment on the tracking issue with Phase 3 results (bump PR URL,
+5. Comment on the tracking issue with Phase 3 results (bump PR URL,
    next version now on `develop`).
 
 ### Phase 4 — Confirm publish

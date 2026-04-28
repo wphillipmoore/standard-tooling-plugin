@@ -97,7 +97,10 @@ st-submit-pr \
 
 - `--issue` (required): GitHub issue number (just the number)
 - `--summary` (required): one-line PR summary
-- `--linkage` (optional, default: `Fixes`): `Fixes|Closes|Resolves|Ref`
+- `--linkage` (optional, default: `Ref`): **always use `Ref`**.
+  `Fixes`, `Closes`, and `Resolves` are forbidden — they auto-close
+  the issue at merge time, bypassing finalization. Issues are closed
+  explicitly after `st-finalize-repo` succeeds.
 - `--title` (optional): PR title (default: most recent commit subject)
 - `--notes` (optional): additional notes
 - `--dry-run` (optional): print generated PR without executing

@@ -161,6 +161,26 @@ commands: wrap the container tool in `st-docker-run --`. See the
 [`publish` skill's host-vs-container section](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands)
 for the canonical split and rationale.
 
+### block-autoclose-linkage
+
+**What.** Denies `st-submit-pr` invocations that pass `--linkage
+Fixes`, `--linkage Closes`, or `--linkage Resolves`.
+
+**Why.** These keywords auto-close the linked issue when the PR
+merges. Our workflow has a mandatory post-merge finalization phase
+(`st-finalize-repo`) that reconciles local state — an issue closed
+at merge time signals "done" while the local environment is stale.
+Using `Ref` linkage keeps the issue open until finalization
+confirms the work cycle is complete, at which point the agent
+closes the issue explicitly.
+
+**Alternative.** Use `--linkage Ref` (or omit `--linkage` — `Ref`
+is the intended default once `st-submit-pr` is updated in
+`standard-tooling`). After `st-finalize-repo` succeeds, close the
+issue with `gh issue close <N>`. The
+[`pr-workflow` skill](../skills/index.md#pr-workflow)'s "Close the
+issue" step documents this flow.
+
 ## PreToolUse Hooks — Write|Edit
 
 *(none currently active — `block-memory-writes` was removed on
