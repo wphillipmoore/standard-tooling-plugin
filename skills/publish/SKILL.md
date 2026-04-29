@@ -71,7 +71,8 @@ a seam that can break.
 - `git` — local git operations (checkout, branch, fetch, pull, push)
 - `gh` — all GitHub CLI operations (issue/PR/release management)
 - `st-prepare-release`, `st-commit`, `st-submit-pr`, `st-finalize-repo`,
-  `st-merge-when-green` — release/PR lifecycle drivers
+  `st-merge-when-green`, `st-wait-until-green` — release/PR lifecycle
+  drivers
 - `st-docker-run` itself — the dispatcher that runs container commands
 - `git-cliff` — changelog generation
 
@@ -147,8 +148,9 @@ within a single session.
 - Identify the canonical validation command from the repository profile.
 - Locate the standard-tooling host commands using the search algorithm
   above (at minimum: `st-prepare-release`, `st-merge-when-green`,
-  `st-finalize-repo`, `st-commit`, `st-submit-pr`, `gh`, `git-cliff`,
-  `st-docker-run`). If any required command is missing, **abort** with
+  `st-wait-until-green`, `st-finalize-repo`, `st-commit`,
+  `st-submit-pr`, `gh`, `git-cliff`, `st-docker-run`). If any
+  required command is missing, **abort** with
   setup instructions.
 - Verify `GH_TOKEN` is set in the environment. If not, **abort** with a
   message directing the user to set it.
