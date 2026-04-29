@@ -1425,17 +1425,18 @@ hooks specifically; the pre-commit git hook is documented in
 to achieve the intent correctly when the hook blocks you.</p>
 <h2 id="managed-repo-gating">Managed-repo gating<a class="headerlink" href="#managed-repo-gating" title="Permanent link">&para;</a></h2>
 <p>Every hook below <strong>except <code>block-heredoc</code></strong> is gated on a
-managed-repo check. A repo is "managed" when either of these marker
+managed-repo check. A repo is "managed" when any of these marker
 files exists at the repo root:</p>
 <ul>
 <li><code>docs/repository-standards.md</code> — the existing per-repo config</li>
-<li><code>st-config.yaml</code> — the future single-file config (transition target;
-  both are accepted during migration)</li>
+<li><code>st-config.toml</code> — the single-file config</li>
+<li><code>st-config.yaml</code> — legacy variant (both formats accepted during
+  migration)</li>
 </ul>
-<p>When neither marker is present, the gated hooks short-circuit to a
+<p>When no marker is present, the gated hooks short-circuit to a
 no-op so the plugin doesn't interfere with ad-hoc git work in
 unrelated repositories. Detection is a pure-shell walk up from the
-bash session's CWD looking for either marker, terminating at a
+bash session's CWD looking for any marker, terminating at a
 <code>.git</code> boundary or the filesystem root. No <code>git</code> subprocess; the
 gate's overhead is a handful of <code>stat()</code> calls.</p>
 <p><code>block-heredoc</code> is intentionally <strong>not</strong> gated — heredoc syntax in
