@@ -79,6 +79,9 @@ for the canonical split.
 - Ensure commit-message format and AI co-authorship requirements
   are met per the commit standards (handled by `st-commit`; this
   skill does not commit).
+- If `st-docker-cache` is available, run `st-docker-cache build`
+  to ensure the cached dev container image is warm for validation.
+  This is a no-op if the cache is already current.
 
 ## Pre-submission
 

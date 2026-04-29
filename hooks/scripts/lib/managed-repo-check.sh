@@ -5,8 +5,8 @@
 # is the presence of either of two marker files at the repo root:
 #
 #   docs/repository-standards.md   — the existing per-repo config
-#   st-config.yaml                 — the future single-file config
-#                                    (transition target; both are
+#   st-config.toml                 — the single-file config
+#   st-config.yaml                 — legacy variant (both formats
 #                                    accepted during migration)
 #
 # When neither marker is present, the plugin's enforcement hooks
@@ -35,8 +35,8 @@
 #   3. The walk reaches `/` or an empty path → return 1 (not managed).
 #
 # Implementation note: pure shell. No subprocess spawns (no `git`,
-# no `dirname`, no `realpath`). Each iteration is two `[ -f ]` and
-# one `[ -e ]` — sub-millisecond per call.
+# no `dirname`, no `realpath`). Each iteration is three `[ -f ]`
+# and one `[ -e ]` — sub-millisecond per call.
 is_managed_repo() {
 	local dir="${1:-$PWD}"
 
@@ -47,7 +47,7 @@ is_managed_repo() {
 	esac
 
 	while [ "$dir" != "/" ] && [ -n "$dir" ]; do
-		if [ -f "$dir/docs/repository-standards.md" ] || [ -f "$dir/st-config.yaml" ]; then
+		if [ -f "$dir/docs/repository-standards.md" ] || [ -f "$dir/st-config.toml" ] || [ -f "$dir/st-config.yaml" ]; then
 			return 0
 		fi
 		if [ -e "$dir/.git" ]; then
