@@ -70,10 +70,16 @@ create.
 - Resolves the branch name via the GitHub API
 - Checks the branch against the allow-list (`release/*`,
   `chore/bump-version-*`)
-- Exits 0 if allowed, exits non-zero with an error message if
-  denied or if resolution fails
-- On any GitHub API failure, denies by default and surfaces the
-  error message (not hides it) so the user can diagnose
+- Exit codes follow the three-state convention
+  ([standard-tooling#373](https://github.com/wphillipmoore/standard-tooling/issues/373)):
+  - **Exit 0** — allowed (release-workflow branch)
+  - **Exit 1** — denied (tool ran, branch does not match
+    allow-list; deny message on stderr)
+  - **Exit 2** — unknown (tool could not determine the answer —
+    GitHub API failure, parse failure, etc.; error details on
+    stderr)
+- On any failure to determine the answer, exit 2 and surface the
+  full error message (not hide it) so the user can diagnose
 
 ### Hook behavior
 
@@ -84,8 +90,15 @@ create.
    `gh pr review --approve`. Exit 0 if neither.
 4. Pass the command string to `st-check-pr-merge`.
 5. If `st-check-pr-merge` exits 0, exit 0 (allow).
-6. If `st-check-pr-merge` exits non-zero, emit a deny decision
-   using the stderr from `st-check-pr-merge` as the reason.
+6. If `st-check-pr-merge` exits 1, emit a deny decision using
+   the stderr from `st-check-pr-merge` as the reason (definitive
+   denial).
+7. If `st-check-pr-merge` exits 2 or any other non-zero code,
+   emit a deny decision with a message indicating the tool could
+   not determine whether the merge is allowed, including the
+   stderr output for diagnosis. The merge is still blocked — a
+   merge the tool cannot verify is not safe to allow — but the
+   reason distinguishes "policy denied" from "tool failure."
 
 ### Deny message
 
@@ -183,9 +196,10 @@ handles all flag ordering variations in Python, not shell.
 ### GitHub API failure
 
 If the GitHub API call fails (bad PR ref, network error, auth
-issue), `st-check-pr-merge` denies by default and surfaces the
-full error message. A merge the tool cannot verify is not safe to
-allow.
+issue), `st-check-pr-merge` exits 2 (unknown) and surfaces the
+full error message on stderr. The hook still blocks the merge — a
+merge the tool cannot verify is not safe to allow — but the deny
+message distinguishes "tool failure" from "policy denied."
 
 ### Cross-repo PRs
 
@@ -199,25 +213,28 @@ extracts and forwards the `--repo` argument to the API call.
 
 1. **Allowed branch:** PR on `release/1.4.9` — exits 0.
 2. **Allowed branch:** PR on `chore/bump-version-1.4.10` — exits 0.
-3. **Blocked branch:** PR on `feature/42-foo` — exits non-zero.
+3. **Blocked branch:** PR on `feature/42-foo` — exits 1.
 4. **Flags before ref:** `--squash 364` — extracts 364 correctly.
 5. **URL format:** full GitHub URL — resolves correctly.
 6. **`--repo` flag:** extracts repo and passes to API.
-7. **API failure:** returns non-zero with error message.
+7. **API failure:** exits 2 with error message on stderr.
 
 ### `block-agent-merge.sh` (manual hook testing)
 
-1. **Block case:** Input containing `gh pr merge 42` where
-   `st-check-pr-merge` returns non-zero. Expect deny.
-2. **Allow case:** Input containing `gh pr merge <url>` where
+1. **Denied (exit 1):** Input containing `gh pr merge 42` where
+   `st-check-pr-merge` exits 1. Expect deny with policy message.
+2. **Unknown (exit 2):** Input containing `gh pr merge 42` where
+   `st-check-pr-merge` exits 2. Expect deny with tool-failure
+   message (distinct from policy denial).
+3. **Allow case:** Input containing `gh pr merge <url>` where
    `st-check-pr-merge` returns 0. Expect allow (exit 0).
-3. **Non-managed repo:** Input with a cwd that has no
+4. **Non-managed repo:** Input with a cwd that has no
    `docs/repository-standards.md`. Expect allow (exit 0).
-4. **No match:** Input containing `gh issue list`. Expect allow
+5. **No match:** Input containing `gh issue list`. Expect allow
    (exit 0).
-5. **gh pr review --approve block:** Input containing
-   `gh pr review --approve 42` where `st-check-pr-merge` returns
-   non-zero. Expect deny.
+6. **gh pr review --approve block:** Input containing
+   `gh pr review --approve 42` where `st-check-pr-merge` exits 1.
+   Expect deny.
 
 ### `st-merge-when-green` (updated tests in standard-tooling)
 
