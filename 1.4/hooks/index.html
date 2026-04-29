@@ -495,6 +495,8 @@
       
         
       
+        
+      
     
     
     
@@ -538,6 +540,29 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v1.4.10/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.4.10
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -969,6 +994,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#block-agent-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      block-agent-merge
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1251,6 +1285,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#block-agent-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      block-agent-merge
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1407,17 +1450,18 @@ hooks specifically; the pre-commit git hook is documented in
 to achieve the intent correctly when the hook blocks you.</p>
 <h2 id="managed-repo-gating">Managed-repo gating<a class="headerlink" href="#managed-repo-gating" title="Permanent link">&para;</a></h2>
 <p>Every hook below <strong>except <code>block-heredoc</code></strong> is gated on a
-managed-repo check. A repo is "managed" when either of these marker
+managed-repo check. A repo is "managed" when any of these marker
 files exists at the repo root:</p>
 <ul>
 <li><code>docs/repository-standards.md</code> — the existing per-repo config</li>
-<li><code>st-config.yaml</code> — the future single-file config (transition target;
-  both are accepted during migration)</li>
+<li><code>st-config.toml</code> — the single-file config</li>
+<li><code>st-config.yaml</code> — legacy variant (both formats accepted during
+  migration)</li>
 </ul>
-<p>When neither marker is present, the gated hooks short-circuit to a
+<p>When no marker is present, the gated hooks short-circuit to a
 no-op so the plugin doesn't interfere with ad-hoc git work in
 unrelated repositories. Detection is a pure-shell walk up from the
-bash session's CWD looking for either marker, terminating at a
+bash session's CWD looking for any marker, terminating at a
 <code>.git</code> boundary or the filesystem root. No <code>git</code> subprocess; the
 gate's overhead is a handful of <code>stat()</code> calls.</p>
 <p><code>block-heredoc</code> is intentionally <strong>not</strong> gated — heredoc syntax in
@@ -1504,20 +1548,27 @@ split from
   SSH-agent, host git config, or host <code>gh</code> auth — the container
   can't satisfy those.</li>
 <li><strong>Warns</strong> (via <code>additionalContext</code>, not deny) when a
-  container-only tool is invoked bare without <code>st-docker-run --</code>
-  (e.g., bare <code>ruff check .</code>). This sometimes works on hosts
-  with the tool installed but may silently use the wrong version.</li>
+  container-only tool is invoked directly — whether bare
+  (e.g., <code>ruff check .</code>) or wrapped in <code>st-docker-run --</code>.
+  Both bypass the <code>scripts/dev/*.sh</code> abstraction layer that
+  each repo maintains. The correct entry point is
+  <code>st-validate-local</code>, which delegates to those scripts.</li>
 </ul>
 <p>The canonical tool lists live in
 <code>hooks/scripts/lib/host-container-tools.sh</code> so the same source of
 truth powers both the hook and any future docs/lint.</p>
 <p><strong>Why.</strong> The drift that produced #96 — 47 days of agents silently
 wrapping host tools in the container — was caused by documentation
-being the only enforcement mechanism. This hook makes the routing
-rule mechanical.</p>
+being the only enforcement mechanism. Issue
+<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/168">#168</a>
+extended this to also catch agents bypassing the <code>scripts/dev</code>
+abstraction by calling linters directly (even correctly wrapped in
+<code>st-docker-run</code>). The agent should never invoke individual
+linters — <code>st-validate-local</code> handles tool routing internally.</p>
 <p><strong>Alternative.</strong> For denied commands: invoke the host tool
 directly (drop the <code>st-docker-run --</code> prefix). For warned
-commands: wrap the container tool in <code>st-docker-run --</code>. See the
+commands: use <code>st-validate-local</code> instead of invoking individual
+linters. See the
 <a href="https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands"><code>publish</code> skill's host-vs-container section</a>
 for the canonical split and rationale.</p>
 <h3 id="block-autoclose-linkage">block-autoclose-linkage<a class="headerlink" href="#block-autoclose-linkage" title="Permanent link">&para;</a></h3>
@@ -1536,6 +1587,30 @@ is the intended default once <code>st-submit-pr</code> is updated in
 issue with <code>gh issue close &lt;N&gt;</code>. The
 <a href="../skills/#pr-workflow"><code>pr-workflow</code> skill</a>'s "Close the
 issue" step documents this flow.</p>
+<h3 id="block-agent-merge">block-agent-merge<a class="headerlink" href="#block-agent-merge" title="Permanent link">&para;</a></h3>
+<p><strong>What.</strong> Denies Bash tool invocations that call <code>gh pr merge</code>
+or <code>gh pr review --approve</code> on non-release PRs.</p>
+<p><strong>Why.</strong> Agents must not merge feature or bugfix PRs — human
+review and merge is required. Skill prose saying "do not merge"
+is advisory; agents rationalize past it. This hook makes the
+rule mechanical. See
+<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/162">#162</a>
+for the incident that motivated this.</p>
+<p><strong>How it works.</strong> The hook delegates branch verification to
+<code>st-check-pr-merge</code>, which resolves the PR's head branch via the
+GitHub API and checks it against the release-workflow allow-list
+(<code>release/*</code>, <code>chore/bump-version-*</code>, and
+<code>chore/*-next-cycle-deps-*</code>). Exit codes follow the
+three-state convention
+(<a href="https://github.com/wphillipmoore/standard-tooling/issues/373">standard-tooling#373</a>):
+0 = allowed, 1 = denied, 2 = unknown. The unknown case still
+blocks the merge, but the reason message distinguishes "denied by
+policy" from "tool failed" so the user knows whether to investigate
+a policy question or a tooling failure.</p>
+<p><strong>Alternative.</strong> Hand off the PR URL to the user for review and
+merge. For release-workflow PRs (<code>release/*</code> and
+<code>chore/bump-version-*</code>), use <code>st-merge-when-green</code> from the
+<a href="../skills/#publish"><code>publish</code> skill</a>.</p>
 <h2 id="pretooluse-hooks-writeedit">PreToolUse Hooks — Write|Edit<a class="headerlink" href="#pretooluse-hooks-writeedit" title="Permanent link">&para;</a></h2>
 <p><em>(none currently active — <code>block-memory-writes</code> was removed on
 2026-04-23 when feedback memory was re-enabled fleet-wide.)</em></p>
