@@ -427,11 +427,14 @@ picked them up yet.** Every Claude Code session that has this
 plugin (or any standard-tooling-distributed plugin) installed
 needs an explicit local refresh — `/plugin marketplace update`
 downloads the new version but the running session keeps using the
-old in-memory state until `/reload-plugins` is run. The agent
-producing the release is responsible for surfacing the refresh
-step explicitly to the user. Listing artifacts and stopping is
-not the end of the cycle; saying "v\<version> shipped, now run
-the refresh sequence" is.
+old in-memory state until `/reload-plugins` is run.
+
+**Display only — do not execute.** The agent's job is to show
+the user the exact commands to run, not to run them. The refresh
+is a consumer-side action: the user controls when and in which
+session they apply it. Running the commands silently or
+inconsistently (sometimes executing, sometimes displaying) is
+the behavior this rule exists to prevent.
 
 Surface the consumer-side update sequence verbatim. For this
 repo (`standard-tooling-plugin`):
@@ -442,11 +445,11 @@ repo (`standard-tooling-plugin`):
 ```
 
 For other tool-providing repos (`standard-tooling`,
-`standard-tooling-docker`, `standard-actions`), use the
-repo-specific refresh sequence — see each repo's `Development
-and deployment` section in its README. If the repo doesn't
-document a refresh sequence, that's a gap to file separately;
-do not invent one.
+`standard-tooling-docker`, `standard-actions`), look up the
+repo-specific refresh sequence from the repo's `Development
+and deployment` section in its README and display it verbatim.
+If the repo doesn't document a refresh sequence, that's a gap
+to file separately; do not invent one.
 
 Phase 7 ends when the user has seen the refresh sequence in the
 hand-off message. The user is not required to *run* the
