@@ -13,7 +13,9 @@ no mechanical enforcement preventing `gh pr merge` on any PR.
 
 A PreToolUse hook that intercepts Bash tool calls containing
 `gh pr merge` or `gh pr review --approve` and denies them unless
-the target is a release-workflow PR.
+the target is a release-workflow PR. The hook delegates PR
+resolution and branch-name verification to a new `st-*` host
+command, keeping all mechanical parsing out of shell.
 
 ### What to block
 
@@ -31,7 +33,7 @@ by branch name:
 - `release/*` — the release PR to main
 - `chore/bump-version-*` — the post-publish version bump PR to develop
 
-**Important:** `st-merge-when-green` does NOT need an exemption.
+**Important:** `st-merge-when-green` does NOT need a hook exemption.
 It calls `gh pr merge` internally via Python's subprocess module,
 not through Claude Code's Bash tool. The hook only intercepts
 commands that pass through the Bash tool boundary. This means:
@@ -47,25 +49,31 @@ release PR instead of using `st-merge-when-green`. This should
 not happen in normal operation but the hook should not create a
 false-positive block if it does.
 
-### How to determine the branch name
+### Architecture: delegate parsing to `st-check-pr-merge`
 
-The hook receives only the Bash command string. It must extract
-the PR identifier (URL or number) and resolve the branch name.
-Two approaches:
+The hook script does NOT parse PR references or query GitHub
+itself. Instead, it detects `gh pr merge` or `gh pr review
+--approve` in the command string and delegates to a new
+`st-check-pr-merge` host command in standard-tooling.
 
-**Option A — Extract and query (recommended):** Parse the PR
-number or URL from the command, then run `gh pr view <pr>
---json headRefName --jq '.headRefName'` to get the branch name.
-This is reliable regardless of how the PR is referenced.
+This follows the foundational architectural decision: mechanical
+tasks belong in Python scripts (`st-*`), not in shell hooks where
+agents or contributors might get creative with parsing. The less
+we leave to ad-hoc shell logic, the fewer failure scenarios we
+create.
 
-**Option B — Require URL format and parse:** Assume the PR is
-always passed as a URL and extract the repo/number, then query.
-Less robust but simpler regex.
+**`st-check-pr-merge`** (new command in standard-tooling):
 
-Option A is preferred because agents may pass PR numbers, URLs,
-or variables. The query adds ~200ms latency but runs only when
-`gh pr merge` or `gh pr review --approve` is detected — a rare
-event.
+- Takes the raw Bash command string as input
+- Extracts the PR reference (number or URL), handling all flag
+  ordering variations, `--repo` arguments, pipelines, etc.
+- Resolves the branch name via the GitHub API
+- Checks the branch against the allow-list (`release/*`,
+  `chore/bump-version-*`)
+- Exits 0 if allowed, exits non-zero with an error message if
+  denied or if resolution fails
+- On any GitHub API failure, denies by default and surfaces the
+  error message (not hides it) so the user can diagnose
 
 ### Hook behavior
 
@@ -74,18 +82,10 @@ event.
    managed.
 3. Check if the command contains `gh pr merge` or
    `gh pr review --approve`. Exit 0 if neither.
-4. Extract the PR reference from the command (the argument after
-   `merge` or after `--approve` in the review case).
-5. Query the branch name: `gh pr view <ref> --json headRefName
-   --jq '.headRefName'`.
-6. If the branch matches `release/*` or `chore/bump-version-*`,
-   exit 0 (allow).
-7. Otherwise, emit a deny decision with a message explaining:
-   - What was blocked and why
-   - That the agent should hand off to the user for review and
-     merge
-   - That `st-merge-when-green` is only for release-workflow PRs
-     from the publish skill
+4. Pass the command string to `st-check-pr-merge`.
+5. If `st-check-pr-merge` exits 0, exit 0 (allow).
+6. If `st-check-pr-merge` exits non-zero, emit a deny decision
+   using the stderr from `st-check-pr-merge` as the reason.
 
 ### Deny message
 
@@ -99,102 +99,140 @@ may be agent-merged, and only via st-merge-when-green from the
 publish skill. See issue #162.
 ```
 
-## File changes
+### Defense in depth: `st-merge-when-green` branch check
 
-### New file: `hooks/scripts/block-agent-merge.sh`
+`st-merge-when-green` itself should also verify the target branch
+name before merging. This is a separate change in standard-tooling
+that adds a sanity check: if the branch does not match `release/*`
+or `chore/bump-version-*`, the script refuses to merge and exits
+non-zero. This closes the bypass where an agent calls
+`st-merge-when-green` on a feature PR — the Python subprocess
+path that the hook cannot intercept.
 
-PreToolUse hook script following the same structure as
-`block-autoclose-linkage.sh`:
+## Implementation: two-repo split
 
-- Shebang, `set -euo pipefail`
-- Source `lib/managed-repo-check.sh`
-- Read stdin, extract cwd, gate on `is_managed_repo`
-- Match `gh pr merge` or `gh pr review --approve`
-- Extract PR ref, query branch name via `gh pr view`
-- Allow if branch matches release pattern, deny otherwise
+### standard-tooling (cross-repo)
 
-### Modified: `hooks/hooks.json`
+1. **New command: `st-check-pr-merge`** — Python script that
+   takes a raw Bash command string, extracts the PR ref, resolves
+   the branch name via GitHub API, and checks against the
+   allow-list. Exits 0 (allowed) or non-zero (denied, with
+   error message on stderr).
 
-Add the new hook to the `PreToolUse` > `Bash` array:
+2. **Modified: `st-merge-when-green`** — Add branch-name
+   verification before merging. Refuse to merge if the branch
+   does not match `release/*` or `chore/bump-version-*`.
 
-```json
-{
-  "type": "command",
-  "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-agent-merge.sh",
-  "statusMessage": "Checking for unauthorized PR merge..."
-}
-```
+### standard-tooling-plugin (this repo)
 
-### Modified: `docs/site/docs/hooks/index.md`
+1. **New file: `hooks/scripts/block-agent-merge.sh`** —
+   PreToolUse hook script following the same structure as
+   `block-autoclose-linkage.sh`:
 
-Add a section documenting the new hook with the standard
-What / Why / Alternative format:
+   - Shebang, `set -euo pipefail`
+   - Source `lib/managed-repo-check.sh`
+   - Read stdin, extract cwd, gate on `is_managed_repo`
+   - Match `gh pr merge` or `gh pr review --approve`
+   - Delegate to `st-check-pr-merge` with the command string
+   - Emit deny decision with stderr from `st-check-pr-merge`
+     if it exits non-zero
 
-- **What:** Blocks `gh pr merge` and `gh pr review --approve`
-  for non-release PRs.
-- **Why:** Agents must not merge feature/bugfix PRs. Human review
-  is required. Skill prose alone is not reliable — see incident
-  in #162.
-- **Alternative:** Hand off the PR URL to the user. For release
-  PRs, use `st-merge-when-green` from the publish skill.
+2. **Modified: `hooks/hooks.json`** — Add the new hook to the
+   `PreToolUse` > `Bash` array:
+
+   ```json
+   {
+     "type": "command",
+     "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-agent-merge.sh",
+     "statusMessage": "Checking for unauthorized PR merge..."
+   }
+   ```
+
+3. **Modified: `docs/site/docs/hooks/index.md`** — Add a section
+   documenting the new hook with the standard What / Why /
+   Alternative format:
+
+   - **What:** Blocks `gh pr merge` and `gh pr review --approve`
+     for non-release PRs.
+   - **Why:** Agents must not merge feature/bugfix PRs. Human
+     review is required. Skill prose alone is not reliable — see
+     incident in #162.
+   - **Alternative:** Hand off the PR URL to the user. For release
+     PRs, use `st-merge-when-green` from the publish skill.
 
 ## Edge cases
 
 ### Agent passes PR number vs URL
 
-The hook must handle both `gh pr merge 364` and
-`gh pr merge https://github.com/owner/repo/pull/364`. The
-`gh pr view` command accepts either form, so this is handled
-naturally.
+`st-check-pr-merge` handles both `gh pr merge 364` and
+`gh pr merge https://github.com/owner/repo/pull/364`. The GitHub
+API accepts either form.
 
 ### Agent pipes or chains commands
 
-The regex should match `gh pr merge` anywhere in a pipeline or
+The hook regex matches `gh pr merge` anywhere in a pipeline or
 command chain (`;`, `&&`, `||`). The existing hooks use patterns
 like `(^|[;&|]\s*)gh\s+pr\s+merge` for this.
 
 ### gh pr merge with flags before the PR ref
 
 The agent might write `gh pr merge --squash 364` or
-`gh pr merge --merge --delete-branch <url>`. The PR ref
-extraction must skip flags (tokens starting with `-`).
+`gh pr merge --merge --delete-branch <url>`. `st-check-pr-merge`
+handles all flag ordering variations in Python, not shell.
 
-### gh pr view fails
+### GitHub API failure
 
-If `gh pr view` fails (bad PR ref, network error, auth issue),
-the hook should **deny by default**. A merge the hook cannot
-verify is not safe to allow. The deny message should include the
-error for debugging.
+If the GitHub API call fails (bad PR ref, network error, auth
+issue), `st-check-pr-merge` denies by default and surfaces the
+full error message. A merge the tool cannot verify is not safe to
+allow.
 
 ### Cross-repo PRs
 
 The agent might merge a PR in a different repo:
-`gh pr merge --repo owner/other-repo 42`. The hook should still
-intercept and verify. `gh pr view --repo owner/other-repo 42`
-handles this.
+`gh pr merge --repo owner/other-repo 42`. `st-check-pr-merge`
+extracts and forwards the `--repo` argument to the API call.
 
 ## Testing
 
-Manual testing by running the hook script directly with crafted
-JSON input:
+### `st-check-pr-merge` (unit tests in standard-tooling)
 
-1. **Block case:** Input containing `gh pr merge 42` where PR 42
-   is on a `feature/*` branch. Expect deny.
-2. **Allow case:** Input containing `gh pr merge <url>` where the
-   PR is on a `release/*` branch. Expect allow (exit 0).
+1. **Allowed branch:** PR on `release/1.4.9` — exits 0.
+2. **Allowed branch:** PR on `chore/bump-version-1.4.10` — exits 0.
+3. **Blocked branch:** PR on `feature/42-foo` — exits non-zero.
+4. **Flags before ref:** `--squash 364` — extracts 364 correctly.
+5. **URL format:** full GitHub URL — resolves correctly.
+6. **`--repo` flag:** extracts repo and passes to API.
+7. **API failure:** returns non-zero with error message.
+
+### `block-agent-merge.sh` (manual hook testing)
+
+1. **Block case:** Input containing `gh pr merge 42` where
+   `st-check-pr-merge` returns non-zero. Expect deny.
+2. **Allow case:** Input containing `gh pr merge <url>` where
+   `st-check-pr-merge` returns 0. Expect allow (exit 0).
 3. **Non-managed repo:** Input with a cwd that has no
    `docs/repository-standards.md`. Expect allow (exit 0).
 4. **No match:** Input containing `gh issue list`. Expect allow
    (exit 0).
 5. **gh pr review --approve block:** Input containing
-   `gh pr review --approve 42` on a feature branch. Expect deny.
+   `gh pr review --approve 42` where `st-check-pr-merge` returns
+   non-zero. Expect deny.
+
+### `st-merge-when-green` (updated tests in standard-tooling)
+
+1. **Release branch:** `release/1.4.9` — proceeds to merge.
+2. **Bump branch:** `chore/bump-version-1.4.10` — proceeds.
+3. **Feature branch:** `feature/42-foo` — refuses, exits non-zero.
 
 ## Not in scope
 
 - **GitHub branch protection rules** (required reviewers, etc.)
   are defense-in-depth and should be configured separately. This
-  spec covers only the agent-side hook.
-- **Blocking `st-merge-when-green` on non-release PRs.** The tool
-  is only invoked from the publish skill and already documents
-  its scope. A hook on it would add complexity without meaningful
-  safety gain. If this becomes a concern, file a separate issue.
+  spec covers only the agent-side gate.
+- **Blocking `gh pr close`** on non-release PRs. Closing a PR
+  doesn't merge code and agents legitimately close PRs during
+  finalization.
+- **Blocking soft-approval patterns** (`gh pr review --comment`
+  with LGTM-like text). Only `--approve` has mechanical effect
+  on branch protection gates.
