@@ -181,6 +181,34 @@ issue with `gh issue close <N>`. The
 [`pr-workflow` skill](../skills/index.md#pr-workflow)'s "Close the
 issue" step documents this flow.
 
+### block-agent-merge
+
+**What.** Denies Bash tool invocations that call `gh pr merge`
+or `gh pr review --approve` on non-release PRs.
+
+**Why.** Agents must not merge feature or bugfix PRs — human
+review and merge is required. Skill prose saying "do not merge"
+is advisory; agents rationalize past it. This hook makes the
+rule mechanical. See
+[#162](https://github.com/wphillipmoore/standard-tooling-plugin/issues/162)
+for the incident that motivated this.
+
+**How it works.** The hook delegates branch verification to
+`st-check-pr-merge`, which resolves the PR's head branch via the
+GitHub API and checks it against the release-workflow allow-list
+(`release/*` and `chore/bump-version-*`). Exit codes follow the
+three-state convention
+([standard-tooling#373](https://github.com/wphillipmoore/standard-tooling/issues/373)):
+0 = allowed, 1 = denied, 2 = unknown. The unknown case still
+blocks the merge, but the reason message distinguishes "denied by
+policy" from "tool failed" so the user knows whether to investigate
+a policy question or a tooling failure.
+
+**Alternative.** Hand off the PR URL to the user for review and
+merge. For release-workflow PRs (`release/*` and
+`chore/bump-version-*`), use `st-merge-when-green` from the
+[`publish` skill](../skills/index.md#publish).
+
 ## PreToolUse Hooks — Write|Edit
 
 *(none currently active — `block-memory-writes` was removed on

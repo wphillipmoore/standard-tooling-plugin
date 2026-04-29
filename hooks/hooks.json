@@ -39,6 +39,11 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-autoclose-linkage.sh",
             "statusMessage": "Checking for auto-close linkage keywords..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/block-agent-merge.sh",
+            "statusMessage": "Checking for unauthorized PR merge..."
           }
         ]
       }
