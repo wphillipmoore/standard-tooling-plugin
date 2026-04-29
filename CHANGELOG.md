@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.11] - 2026-04-29
+
+### Bug fixes
+
+- make Phase 7 hand-off display-only, fix stale three-step reference
+- fix line-length violations in block-agent-merge plan
+
 ## [1.4.10] - 2026-04-29
 
 ### Bug fixes
