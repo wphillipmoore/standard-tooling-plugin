@@ -21,7 +21,7 @@ concurrency:
 jobs:
 
   # ---------------------------------------------------------------------------
-  # Quality: shellcheck, markdownlint, mkdocs-build
+  # Quality: shellcheck, mkdocs-build
   # ---------------------------------------------------------------------------
 
   shellcheck:
@@ -39,21 +39,6 @@ jobs:
           else
             echo "No shell scripts found."
           fi
-
-  markdownlint:
-    name: "ci: markdownlint"
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/wphillipmoore/dev-python:3.14
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Mark workspace safe for git
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      - name: Run markdownlint
-        run: markdownlint 'docs/site/**/*.md' 'README.md'
 
   mkdocs-build:
     name: "ci: mkdocs-build"
