@@ -196,7 +196,8 @@ for the incident that motivated this.
 **How it works.** The hook delegates branch verification to
 `st-check-pr-merge`, which resolves the PR's head branch via the
 GitHub API and checks it against the release-workflow allow-list
-(`release/*` and `chore/bump-version-*`). Exit codes follow the
+(`release/*`, `chore/bump-version-*`, and
+`chore/*-next-cycle-deps-*`). Exit codes follow the
 three-state convention
 ([standard-tooling#373](https://github.com/wphillipmoore/standard-tooling/issues/373)):
 0 = allowed, 1 = denied, 2 = unknown. The unknown case still
