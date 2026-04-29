@@ -100,9 +100,14 @@ tests/
   marginal cost); API providers are used for validation. This is
   driven by cost (API calls are expensive for iterative
   development), imminent local hardware capability, and a deliberate
-  strategy to remain provider-agnostic. The implementation should
-  start with DeepEval's built-in model abstraction and only build a
-  custom layer if DeepEval cannot reach the required providers.
+  strategy to remain provider-agnostic. There are two distinct
+  model roles: the **test subject** (the model being tested) and
+  the **judge** (the model that evaluates the response via GEval).
+  DeepEval manages the judge model through its built-in model
+  abstraction. The test subject uses a lightweight custom provider
+  layer, since DeepEval does not manage the model under test —
+  the harness calls the test subject directly and feeds the
+  response into `LLMTestCase.actual_output`.
 
 - **Results are ephemeral.** Full LLM responses are stored via
   DeepEval's native reporting (gitignored) for post-run human
@@ -117,7 +122,7 @@ JSON hooks, shell scripts) plus a Python test suite.
 
 Python infrastructure follows `standard-tooling` conventions:
 
-- **Python version:** Matches `standard-tooling` (currently 3.13+)
+- **Python version:** Matches `standard-tooling` (currently 3.14+)
 - **Virtual environment:** `.venv/` at repo root, gitignored
 - **Project definition:** `pyproject.toml` with test dependencies
   (`deepeval`, `pyyaml`, `pytest`)
@@ -268,8 +273,10 @@ delegates to DeepEval's assertion mechanism.
 
 ### Provider configuration
 
-Provider selection uses DeepEval's built-in model abstraction
-where possible. A pytest CLI flag selects the provider and model:
+Provider selection uses a lightweight custom provider layer for
+the test subject (the model being tested). DeepEval's built-in
+model abstraction handles the judge model separately. A pytest
+CLI flag selects the test subject provider and model:
 
 ```python
 # tests/conftest.py
@@ -299,10 +306,10 @@ def skill_loader(request):
     return load
 ```
 
-If DeepEval's model abstraction cannot reach required providers
-(particularly local LLMs via Ollama), a thin adapter layer will
-be built. This is determined during implementation, not prescribed
-here.
+The test subject providers are intentionally separate from
+DeepEval's model abstraction, which manages only the GEval judge.
+This separation allows the test subject and judge to use different
+models and providers independently.
 
 ### Usage
 

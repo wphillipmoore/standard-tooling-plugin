@@ -16,7 +16,7 @@ semantically. One test module per skill, parametrized over its
 scenario directory. Adding a scenario means adding a YAML file — no
 Python changes.
 
-**Tech Stack:** Python 3.12+, uv, pytest, DeepEval (GEval metric),
+**Tech Stack:** Python 3.14+, uv, pytest, DeepEval (GEval metric),
 PyYAML, anthropic SDK, openai SDK
 
 **Spec:**
@@ -77,12 +77,17 @@ tests/
 
 - [ ] **Step 1: Write pyproject.toml**
 
+Reference `standard-tooling`'s `pyproject.toml` as the template
+for project metadata conventions, tooling config sections, and
+Python version. The content below is a starting point — cross-check
+against the source of truth to avoid convention drift.
+
 ```toml
 [project]
 name = "standard-tooling-plugin-tests"
 version = "0.0.0"
 description = "Test harness for standard-tooling-plugin skills"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 
 [dependency-groups]
 dev = [
@@ -530,7 +535,7 @@ def run_scenario(
             LLMTestCaseParams.ACTUAL_OUTPUT,
             LLMTestCaseParams.EXPECTED_OUTPUT,
         ],
-        threshold=0.5,
+        threshold=0.5,  # Starting value — calibrate during pilot validation
     )
 
     return ScenarioResult(
