@@ -313,11 +313,16 @@ there — just confirm it doesn't claim to be exhaustive).
 No automated test framework for hook scripts in this repo.
 Manual verification per the spec's test plan:
 
-1. **Block case:** Pipe `{"tool_input":{"command":"gh pr merge 42","cwd":"/path/to/managed-repo"}}` to the script with `st-check-pr-merge` returning non-zero. Expect deny JSON.
-2. **Allow case:** Same input with `st-check-pr-merge` returning 0. Expect exit 0, no output.
-3. **Non-managed repo:** Input with a cwd lacking marker files. Expect exit 0.
+1. **Block case:** Pipe a JSON payload containing `gh pr merge 42`
+   to the script with `st-check-pr-merge` returning non-zero.
+   Expect deny JSON.
+2. **Allow case:** Same input with `st-check-pr-merge` returning
+   0. Expect exit 0, no output.
+3. **Non-managed repo:** Input with a cwd lacking marker files.
+   Expect exit 0.
 4. **No match:** Input with `gh issue list`. Expect exit 0.
-5. **`gh pr review --approve`:** Input with review command, `st-check-pr-merge` returning non-zero. Expect deny JSON.
+5. **`gh pr review --approve`:** Input with review command,
+   `st-check-pr-merge` returning non-zero. Expect deny JSON.
 
 ## Cross-repo coordination
 
