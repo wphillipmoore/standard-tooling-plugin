@@ -190,6 +190,6 @@ obligation to surface the consumer-refresh sequence to the user
 at release time.
 
 When you complete a publish, **the cycle is not done until you
-have shown the user the three-step refresh sequence.** Listing
+have shown the user the two-step refresh sequence.** Listing
 artifacts and stopping is a regression on
 [#105](https://github.com/wphillipmoore/standard-tooling-plugin/issues/105).
