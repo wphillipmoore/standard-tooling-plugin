@@ -143,9 +143,11 @@ split from
   SSH-agent, host git config, or host `gh` auth — the container
   can't satisfy those.
 - **Warns** (via `additionalContext`, not deny) when a
-  container-only tool is invoked bare without `st-docker-run --`
-  (e.g., bare `ruff check .`). This sometimes works on hosts
-  with the tool installed but may silently use the wrong version.
+  container-only tool is invoked directly — whether bare
+  (e.g., `ruff check .`) or wrapped in `st-docker-run --`.
+  Both bypass the `scripts/dev/*.sh` abstraction layer that
+  each repo maintains. The correct entry point is
+  `st-validate-local`, which delegates to those scripts.
 
 The canonical tool lists live in
 `hooks/scripts/lib/host-container-tools.sh` so the same source of
@@ -153,12 +155,17 @@ truth powers both the hook and any future docs/lint.
 
 **Why.** The drift that produced #96 — 47 days of agents silently
 wrapping host tools in the container — was caused by documentation
-being the only enforcement mechanism. This hook makes the routing
-rule mechanical.
+being the only enforcement mechanism. Issue
+[#168](https://github.com/wphillipmoore/standard-tooling-plugin/issues/168)
+extended this to also catch agents bypassing the `scripts/dev`
+abstraction by calling linters directly (even correctly wrapped in
+`st-docker-run`). The agent should never invoke individual
+linters — `st-validate-local` handles tool routing internally.
 
 **Alternative.** For denied commands: invoke the host tool
 directly (drop the `st-docker-run --` prefix). For warned
-commands: wrap the container tool in `st-docker-run --`. See the
+commands: use `st-validate-local` instead of invoking individual
+linters. See the
 [`publish` skill's host-vs-container section](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands)
 for the canonical split and rationale.
 

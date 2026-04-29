@@ -38,18 +38,13 @@ for tool in "${HOST_TOOLS[@]}"; do
   fi
 done
 
-# Check for container tools invoked without st-docker-run -- (WARN)
+# Check for container tools invoked directly (WARN)
 for tool in "${CONTAINER_TOOLS[@]}"; do
-  # Skip if the command already wraps the tool in st-docker-run
-  if echo "$command" | grep -qE "st-docker-run\s+--\s+$tool(\s|$)"; then
-    continue
-  fi
-  # Match bare invocation of the container tool
-  if echo "$command" | grep -qE "(^|[;&|]\s*)$tool(\s|$)"; then
+  if echo "$command" | grep -qE "(^|[;&|]\s*)(st-docker-run\s+--\s+)?$tool(\s|$)"; then
     jq -n --arg tool "$tool" '{
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
-        additionalContext: ("WARNING: \($tool) is a container command — should be wrapped in st-docker-run --. See issue #96: https://github.com/wphillipmoore/standard-tooling-plugin/issues/96")
+        additionalContext: ("WARNING: \($tool) should not be invoked directly. Use st-validate-local for validation — it delegates to scripts/dev/*.sh which handle tool routing internally. See issue #168: https://github.com/wphillipmoore/standard-tooling-plugin/issues/168")
       }
     }'
     exit 0
