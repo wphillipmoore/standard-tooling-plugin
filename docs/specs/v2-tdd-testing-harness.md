@@ -27,9 +27,37 @@ The `superpowers:writing-skills` guide defines the methodology
 refinement). This spec defines the infrastructure that executes
 that methodology reproducibly and at scale.
 
+## Why DeepEval
+
+DeepEval is the implementation framework for the entire testing
+harness. It was chosen over TypeScript alternatives (such as
+promptfoo) for three reasons:
+
+1. **Python ecosystem.** The standard-tooling suite is Python-based.
+   Using a Python evaluation framework means the test harness shares
+   the same language, CI infrastructure, virtual environment
+   conventions, and developer tooling as the rest of the fleet.
+
+2. **pytest-native integration.** DeepEval provides `LLMTestCase`,
+   assertion helpers, and metric evaluation that plug directly into
+   pytest. Test modules are standard pytest files; scenarios run
+   through DeepEval's evaluation pipeline with no custom test runner.
+
+3. **Semantic evaluation via `GEval`.** DeepEval's `GEval` metric
+   evaluates LLM responses against natural-language rubrics using an
+   LLM judge. This replaces fragile substring matching with semantic
+   assessment that handles negation, paraphrasing, and nuanced
+   compliance checking.
+
+The harness is built on top of DeepEval's primitives — not
+alongside them. Test cases are `LLMTestCase` instances. Evaluation
+criteria are `GEval` metrics configured per scenario. Result
+reporting uses DeepEval's native output. Custom code is limited to
+scenario loading, skill injection, and pytest parametrization.
+
 ## Architecture Overview
 
-```
+```text
 tests/
   conftest.py                    # Provider config, pytest options
   skills/
@@ -59,15 +87,47 @@ tests/
   scenario directory. Adding a scenario for a skill means adding a
   YAML file — no Python changes needed.
 
-- **Provider is configurable** via pytest command-line options. A
-  flag selects which LLM to test against. The architecture supports
-  Claude, local LLMs (Ollama, llama.cpp), OpenAI, Gemini, and
-  arbitrary providers through a common interface.
+- **DeepEval is the evaluation engine.** All scenario evaluation
+  flows through DeepEval's `GEval` metric and `LLMTestCase` API.
+  Scenarios define evaluation rubrics in natural language; DeepEval
+  handles semantic assessment. There is no custom string-matching
+  evaluation layer.
 
-- **Results are ephemeral.** Full LLM responses are stored in
-  `tests/results/` (gitignored) for post-run human review. They
-  are not source. Curated findings from results are promoted into
-  scenario YAML files as committed source.
+- **Provider flexibility is a core requirement.** The harness must
+  support multiple LLM providers from the start: Claude (API),
+  local LLMs (Ollama, llama.cpp), and other API providers (OpenAI,
+  Gemini). Local LLMs are the primary iteration target (zero
+  marginal cost); API providers are used for validation. This is
+  driven by cost (API calls are expensive for iterative
+  development), imminent local hardware capability, and a deliberate
+  strategy to remain provider-agnostic. The implementation should
+  start with DeepEval's built-in model abstraction and only build a
+  custom layer if DeepEval cannot reach the required providers.
+
+- **Results are ephemeral.** Full LLM responses are stored via
+  DeepEval's native reporting (gitignored) for post-run human
+  review. They are not source. Curated findings from results are
+  promoted into scenario YAML files as committed source.
+
+## Python Infrastructure Bootstrap
+
+This repo has no Python infrastructure today. Adding the test
+harness makes this a hybrid repo: plugin content (Markdown skills,
+JSON hooks, shell scripts) plus a Python test suite.
+
+Python infrastructure follows `standard-tooling` conventions:
+
+- **Python version:** Matches `standard-tooling` (currently 3.13+)
+- **Virtual environment:** `.venv/` at repo root, gitignored
+- **Project definition:** `pyproject.toml` with test dependencies
+  (`deepeval`, `pyyaml`, `pytest`)
+- **Makefile:** `make test` target for running the skill test suite
+- **CI:** GitHub Actions workflow with Python setup, dependency
+  caching, and API key secrets (deferred to post-pilot)
+
+The implementing agent should clone the Python project structure
+from `standard-tooling`'s `pyproject.toml`, Makefile, and CI
+workflow as the starting template.
 
 ## Test Types
 
@@ -136,30 +196,20 @@ prompt: |
 
   Choose A, B, or C.
 
-# Evaluation criteria — behavioral markers
-pass:
-  must-contain:
-    - "A"
-  must-not-contain:
-    - "suppress"
-    - "skip the issue"
-  behavioral:
-    - "Agent follows the triage decision tree"
+# Evaluation — DeepEval GEval rubric
+evaluation:
+  criteria:
+    - "Agent chooses Option A (follow the skill's triage workflow)"
     - "Agent creates or references a tracking issue"
-fail:
-  any-contain:
-    - "B"
-    - "C"
-    - "ship now"
-
-# LLM-as-judge (opt-in, off by default)
-judge:
-  enabled: false
+    - "Agent does not suppress the warning without issue tracking"
+    - "Agent does not attempt an upgrade in the release branch"
   rubric: |
     Did the agent follow the deprecation-triage skill's workflow?
-    Specifically: did it prioritize issue tracking over suppression?
+    Specifically: did it prioritize issue tracking over suppression,
+    and avoid risky actions (upgrading in a release branch) under
+    time pressure?
 
-# Captured during RED phase — informs skill authoring
+# Captured during development — informs skill authoring
 baseline:
   date: null
   provider: null
@@ -167,6 +217,12 @@ baseline:
   chose: null
   rationalizations: []
 ```
+
+The exact structure of the `evaluation` section will be refined
+during implementation as the mapping to DeepEval's `GEval` API
+is validated. The metadata fields (`name`, `skill`, `type`,
+`pressures`), prompt fields (`system`, `prompt`), and baseline
+section are stable.
 
 ### Field reference
 
@@ -178,13 +234,9 @@ baseline:
 | `pressures` | Pressure types applied (pressure scenarios only) |
 | `system` | System prompt template; `{skill_content}` is replaced by the skill loader |
 | `prompt` | User prompt — the scenario itself |
-| `pass.must-contain` | Strings that MUST appear in the response (case-insensitive) |
-| `pass.must-not-contain` | Strings that MUST NOT appear in the response |
-| `pass.behavioral` | Human-readable pass criteria; used in reporting and as judge input |
-| `fail.any-contain` | Presence of ANY of these strings is an automatic failure |
-| `judge.enabled` | Whether to run LLM-as-judge evaluation |
-| `judge.rubric` | Evaluation rubric sent to the judge model |
-| `baseline` | RED phase observations — rationalizations captured from failing runs |
+| `evaluation.criteria` | Pass/fail criteria evaluated semantically by DeepEval's `GEval` metric |
+| `evaluation.rubric` | Natural-language rubric sent to the judge model for semantic evaluation |
+| `baseline` | Development-phase observations — rationalizations captured from failing runs |
 
 ## Test Runner
 
@@ -209,21 +261,15 @@ def test_deprecation_triage(scenario, llm_provider, skill_loader):
     result.assert_pass()
 ```
 
-### Provider abstraction
+The `run_scenario` function constructs a DeepEval `LLMTestCase`,
+configures `GEval` metrics from the scenario's `evaluation`
+section, and runs the assessment. The `result.assert_pass()` call
+delegates to DeepEval's assertion mechanism.
 
-Every provider implements a single interface: accept a system
-prompt and a user prompt, return the response text. This is the
-contract that makes providers swappable:
+### Provider configuration
 
-```python
-class LLMProvider:
-    def complete(self, system: str, prompt: str) -> str:
-        """Send system + prompt to the LLM, return response text."""
-        ...
-```
-
-The `create_provider` factory returns a provider instance based
-on the CLI flags:
+Provider selection uses DeepEval's built-in model abstraction
+where possible. A pytest CLI flag selects the provider and model:
 
 ```python
 # tests/conftest.py
@@ -234,7 +280,7 @@ def pytest_addoption(parser):
     parser.addoption("--model", default=None,
                      help="Model override")
     parser.addoption("--no-skill", action="store_true",
-                     help="RED phase: run without skill content")
+                     help="Scenario validation: run without skill content")
 
 @pytest.fixture
 def llm_provider(request):
@@ -253,13 +299,18 @@ def skill_loader(request):
     return load
 ```
 
+If DeepEval's model abstraction cannot reach required providers
+(particularly local LLMs via Ollama), a thin adapter layer will
+be built. This is determined during implementation, not prescribed
+here.
+
 ### Usage
 
 ```bash
 # GREEN: test with skill loaded (default)
 pytest tests/skills/test_deprecation_triage.py
 
-# RED: test without skill (baseline)
+# Scenario validation: confirm scenario creates pressure
 pytest tests/skills/test_deprecation_triage.py --no-skill
 
 # Single scenario
@@ -274,59 +325,61 @@ pytest tests/skills/ --tb=short -q
 
 ## Evaluation Model
 
-Three layers, each adding cost and nuance:
+Evaluation flows through DeepEval's metric system. There are two
+layers:
 
-### Layer 1: Behavioral markers (always runs)
+### Layer 1: DeepEval `GEval` (primary — always runs)
 
-- `must-contain`: response includes these strings
-  (case-insensitive)
-- `must-not-contain`: response does not include these strings
-- `fail.any-contain`: presence of any of these is automatic failure
-- Fast, deterministic, zero additional cost. Handles the majority
-  of cases.
+Each scenario defines evaluation criteria and a rubric in natural
+language. DeepEval's `GEval` metric sends the LLM response plus
+the rubric to a judge model and returns a pass/fail assessment
+with reasoning.
 
-### Layer 2: LLM-as-judge (opt-in per scenario)
+This handles the core evaluation challenge: determining whether
+an agent followed a skill's rules requires semantic understanding,
+not string matching. "I would not suppress the warning" and
+"suppress it" have opposite meanings but share the word "suppress."
+`GEval` evaluates meaning, not substrings.
 
-- Runs only when `judge.enabled: true`
-- Sends the response + rubric to a judge model
-- Judge model is configurable independently of the test model
-- Returns pass/fail with reasoning
-- Used when behavioral markers can't capture compliance nuance
+The judge model is configurable independently of the test model.
+For cost-sensitive local iteration, a local LLM can serve as
+judge. For validation runs, a capable API model judges.
 
-### Layer 3: Human review (development-time only)
+### Layer 2: Human review (development-time only)
 
-- During RED/REFACTOR phases, the engineer reads raw responses in
-  `tests/results/`
-- Identifies rationalization patterns, curates them into scenario
-  baselines
-- Not part of CI — this is the interactive development loop
+During REFACTOR phases, the engineer reads raw responses in
+DeepEval's output and `tests/results/`. This is the interactive
+development loop for identifying rationalization patterns,
+curating them into scenario baselines, and refining skill text.
+Not part of CI.
 
-## Result Storage
+## Known Limitation: Test Environment Divergence
 
-```
-tests/results/
-  2026-04-30-deprecation-triage/
-    defer-vs-fix-under-deadline.yaml
-```
+The test environment sends skill content as part of a bare system
+prompt. In real usage, skills load through the Skill tool within a
+much larger context: system prompt, CLAUDE.md instructions, other
+active skills, conversation history, and tool definitions.
 
-```yaml
-name: defer-vs-fix-under-deadline
-provider: claude
-model: claude-sonnet-4-6
-timestamp: 2026-04-30T14:23:00Z
-outcome: pass
-markers:
-  must-contain: [pass, pass]
-  must-not-contain: [pass, pass]
-judge: skipped
-response: |
-  I would choose Option A. The deprecation-triage skill is clear...
-```
+This means tests validate that a skill's text *can* produce
+correct behavior in isolation — not that it *will* in every
+deployment context. This is analogous to unit testing: the
+component is tested in isolation, knowing that integration
+behavior may differ.
 
-Results are gitignored. They are ephemeral workspace artifacts for
-human review, not source. Curated findings are promoted into
-scenario YAML baselines (committed source) and skill rationalization
-tables (committed source) through human judgment.
+### Future milestone: integration testing
+
+The long-term goal is an integration test environment that
+exercises skills in realistic deployment context. This would use
+a dedicated GitHub repository set up specifically for testing
+purposes — real PRs, real CI pipelines, simulated failures — to
+validate skill behavior under production-like conditions. This
+repository would serve as a controlled environment where the full
+development workflow can be exercised end-to-end.
+
+This is not a "nice to have." It is the eventual testing standard.
+The unit-test-in-isolation approach is the starting point; the
+integration test repo is where this must go to provide meaningful
+confidence in skill behavior.
 
 ## The Rationalization Feedback Loop
 
@@ -339,11 +392,11 @@ run 47 might surface a rationalization that runs 1-46 did not.
 
 The feedback loop:
 
-1. **Run test** — ephemeral output in `tests/results/`
+1. **Run test** — ephemeral output via DeepEval reporting
 2. **Human reads output** — identifies rationalization patterns
    (judgment call, not automated)
 3. **Human updates scenario YAML** — adds rationalization to
-   `baseline.rationalizations`, adds new markers to `fail.any-contain`
+   `baseline.rationalizations`, refines evaluation criteria
    (committed source)
 4. **Human updates skill** — adds counter to rationalization table,
    adds entry to red flags list, adds explicit negation to rules
@@ -354,6 +407,33 @@ The scenario's `baseline` section is the permanent record of which
 failure modes the skill was designed to prevent. It answers the
 question: "why does this rationalization table entry exist?" months
 or years later.
+
+### Non-determinism and the asymptotic nature of coverage
+
+Unlike deterministic software tests, skill tests cannot converge
+to a stable pass/fail state. The rationalization feedback loop is
+**asymptotic, not convergent**: each round of hardening catches the
+most common rationalizations, but the long tail is infinite. Run
+100 may surface a pattern that runs 1-99 did not.
+
+This has direct consequences:
+
+- **CI cannot demand perfection.** A single run that passes is a
+  signal, not a proof. A single run that fails may be a new
+  rationalization or noise. CI gates should use pass-rate thresholds
+  over multiple runs rather than demanding every run passes.
+- **Cost governs depth.** Against a free local LLM, you can run 10
+  times and hunt for new patterns. Against Claude's API, you run
+  once or twice and accept the confidence level you can afford.
+- **The stopping rule is economic, not scientific.** You stop
+  refining when the cost of finding the next rationalization exceeds
+  the value of countering it. This is an engineer judgment call,
+  documented in the scenario's baseline with a rationale for why
+  coverage is considered sufficient.
+
+The spec does not pretend this is deterministic testing. It is
+non-deterministic testing with diminishing returns, and the
+methodology must be honest about that.
 
 ### How rationalization counters work in skills
 
@@ -390,42 +470,64 @@ LLMs argue their way around rules.
 
 ## RED-GREEN-REFACTOR Workflow
 
-### RED phase (baseline — watch it fail)
+### Scenario validation (one-time per scenario)
 
 ```bash
 pytest tests/skills/test_deprecation_triage.py --no-skill
 ```
 
 The `--no-skill` flag injects an empty string instead of skill
-content. The agent gets the scenario and pressure but no guidance.
-Failures are expected. Review raw responses in `tests/results/`,
-capture rationalizations verbatim into the scenario's `baseline`
-section.
+content. Run this once when authoring a new scenario to confirm
+the scenario actually creates pressure. If the agent passes with
+no skill loaded, the scenario is too easy — it is not testing
+anything and needs to be redesigned.
 
-### GREEN phase (write skill, watch it pass)
+This is a scenario quality check, not part of the ongoing
+development cycle.
+
+### RED phase (skill has a gap)
 
 ```bash
 pytest tests/skills/test_deprecation_triage.py
 ```
 
-All scenarios should pass with the skill loaded. If any fail, the
-skill is incomplete — revise and rerun.
+Write a new scenario targeting a pressure or decision path you
+suspect the current skill does not handle well. Run it with the
+skill loaded. If the test fails — the agent makes the wrong choice
+despite having the skill's guidance — you have found a real gap.
+The failure tells you exactly what the skill needs to address.
 
-### REFACTOR phase (close loopholes)
+Review raw responses to capture the specific rationalizations the
+agent used to justify violating the skill.
 
-When a scenario fails despite the skill being loaded, a new
-rationalization has been found. Update the scenario baseline, add
-tighter markers, revise the skill with counters, rerun.
+### GREEN phase (close the gap)
+
+Revise the skill to counter the rationalizations found in RED:
+add entries to the rationalization table, add red flags, add
+explicit negations. Rerun:
 
 ```bash
-pytest tests/skills/test_deprecation_triage.py -k "defer-vs-fix" -v
+pytest tests/skills/test_deprecation_triage.py -k "defer-vs-fix"
 ```
+
+The test should now pass. If it does not, the skill revision is
+incomplete — iterate.
+
+### REFACTOR phase (harden)
+
+Run multiple times to hunt for alternative rationalizations.
+Update scenario baselines and skill counters as new patterns
+emerge. This is where the asymptotic nature of coverage applies:
+each pass finds less, and the engineer decides when diminishing
+returns justify stopping.
 
 ### Cycle termination
 
-The cycle terminates when: all scenarios pass with the skill
-loaded, all scenarios fail without the skill (`--no-skill`), and no
-new rationalizations emerge from manual review of the responses.
+The cycle terminates by engineer judgment when: the scenario
+passes reliably with the skill loaded, identified rationalizations
+have counters in the skill, and the cost of additional runs
+exceeds the expected value of finding new patterns. Document the
+stopping rationale in the scenario's baseline section.
 
 ## Pilot: Hello World on `deprecation-triage`
 
@@ -438,32 +540,37 @@ new rationalizations emerge from manual review of the responses.
 
 ### What gets built
 
+- `pyproject.toml` — project definition with test dependencies
+  (deepeval, pyyaml, pytest), following `standard-tooling`
+  conventions
+- `Makefile` — `make test` target for the skill test suite
 - `tests/conftest.py` — provider fixture, pytest options
 - `tests/skills/conftest.py` — skill loader, scenario loader,
-  `run_scenario`, `--no-skill` flag
+  `run_scenario` (built on DeepEval's `LLMTestCase` and `GEval`),
+  `--no-skill` flag
 - `tests/scenarios/deprecation-triage/pressure-01-defer-vs-fix.yaml`
-  — one scenario
+  — one scenario with `GEval` rubric
 - `tests/skills/test_deprecation_triage.py` — one test module
-- `pyproject.toml` updates for test dependencies (deepeval, pyyaml)
 - `tests/results/.gitkeep` and `.gitignore` entry
+- `.venv/` convention (gitignored)
 
 ### What does NOT get built
 
-- LLM-as-judge evaluation (judge stays `enabled: false`)
-- Multiple providers (Claude only for pilot)
 - CI integration (local runs only)
 - Result diffing or historical comparison
 - Coverage reporting
 
 ### Success criteria
 
-1. Run scenario without skill (`--no-skill`): test fails, agent
-   chooses B or C, rationalization is captured
-2. Run scenario with skill: test passes, agent chooses A, follows
-   triage workflow
-3. Both runs produce stored results in `tests/results/`
-4. The captured rationalization is manually promoted into the
+1. Validate the scenario creates pressure (`--no-skill` run: agent
+   chooses poorly)
+2. Run scenario with skill: test passes via DeepEval `GEval`
+   evaluation, agent follows triage workflow
+3. Both runs produce output via DeepEval's native reporting
+4. At least one captured rationalization is promoted into the
    scenario's `baseline` section
+5. The harness runs successfully against at least one local LLM
+   provider in addition to Claude
 
 This proves RED-GREEN end-to-end through the full pipeline.
 
@@ -472,20 +579,23 @@ This proves RED-GREEN end-to-end through the full pipeline.
 ### CI integration
 
 GitHub Actions workflow running `pytest tests/skills/` on PR.
-Requires API key secret. Cost-tiered: smoke tests on every PR,
-full suite on merges to develop.
+Requires API key secret. Cost-tiered: smoke tests on every PR
+(local LLM or single API call), full suite on merges to develop
+(multiple runs for pass-rate confidence). CI gates use pass-rate
+thresholds, not single-run pass/fail.
 
-### Multiple providers
+### Integration test repository
 
-`--provider local --model llama3` works through the provider
-abstraction. Each provider implements: accept system + user prompt,
-return response text. Provider-specific quirks encapsulated in
-provider modules.
+A dedicated GitHub repository for exercising skills in realistic
+deployment context: real PRs, real CI pipelines, simulated
+failures. Validates that skills work under production-like
+conditions, not just in isolated system prompts. See "Known
+Limitation: Test Environment Divergence" above.
 
 ### Regression detection
 
-Historical comparison across runs in `tests/results/`. Tooling to
-diff runs or detect new rationalizations is future work.
+Historical comparison across runs. Tooling to diff runs or detect
+new rationalizations is future work.
 
 ### Coverage reporting
 
