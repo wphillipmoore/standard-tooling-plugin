@@ -969,6 +969,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#block-agent-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      block-agent-merge
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1246,6 +1255,15 @@
   <a href="#block-autoclose-linkage" class="md-nav__link">
     <span class="md-ellipsis">
       block-autoclose-linkage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#block-agent-merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      block-agent-merge
     </span>
   </a>
   
@@ -1536,6 +1554,29 @@ is the intended default once <code>st-submit-pr</code> is updated in
 issue with <code>gh issue close &lt;N&gt;</code>. The
 <a href="../skills/#pr-workflow"><code>pr-workflow</code> skill</a>'s "Close the
 issue" step documents this flow.</p>
+<h3 id="block-agent-merge">block-agent-merge<a class="headerlink" href="#block-agent-merge" title="Permanent link">&para;</a></h3>
+<p><strong>What.</strong> Denies Bash tool invocations that call <code>gh pr merge</code>
+or <code>gh pr review --approve</code> on non-release PRs.</p>
+<p><strong>Why.</strong> Agents must not merge feature or bugfix PRs — human
+review and merge is required. Skill prose saying "do not merge"
+is advisory; agents rationalize past it. This hook makes the
+rule mechanical. See
+<a href="https://github.com/wphillipmoore/standard-tooling-plugin/issues/162">#162</a>
+for the incident that motivated this.</p>
+<p><strong>How it works.</strong> The hook delegates branch verification to
+<code>st-check-pr-merge</code>, which resolves the PR's head branch via the
+GitHub API and checks it against the release-workflow allow-list
+(<code>release/*</code> and <code>chore/bump-version-*</code>). Exit codes follow the
+three-state convention
+(<a href="https://github.com/wphillipmoore/standard-tooling/issues/373">standard-tooling#373</a>):
+0 = allowed, 1 = denied, 2 = unknown. The unknown case still
+blocks the merge, but the reason message distinguishes "denied by
+policy" from "tool failed" so the user knows whether to investigate
+a policy question or a tooling failure.</p>
+<p><strong>Alternative.</strong> Hand off the PR URL to the user for review and
+merge. For release-workflow PRs (<code>release/*</code> and
+<code>chore/bump-version-*</code>), use <code>st-merge-when-green</code> from the
+<a href="../skills/#publish"><code>publish</code> skill</a>.</p>
 <h2 id="pretooluse-hooks-writeedit">PreToolUse Hooks — Write|Edit<a class="headerlink" href="#pretooluse-hooks-writeedit" title="Permanent link">&para;</a></h2>
 <p><em>(none currently active — <code>block-memory-writes</code> was removed on
 2026-04-23 when feedback memory was re-enabled fleet-wide.)</em></p>
