@@ -207,18 +207,21 @@ Org-wide auto-merge is disabled. The normal convention is
 "humans merge human PRs." The release workflow is the explicit
 exception: **the agent is both author and reviewer** of release-
 and-bump PRs, so the agent also merges them via
-`st-merge-when-green`. This applies to two PRs per release cycle:
+`st-merge-when-green`. This applies to three PRs per release
+cycle:
 
 - The `release/<version>` PR (Phase 2 below).
 - The `chore/bump-version-<next>` PR (Phase 3 below).
+- The `chore/<issue>-next-cycle-deps-<version>` PR (Phase 5
+  below).
 
 No other PR types are agent-merged. Feature, bugfix, and
-dependency-update PRs follow the normal human-reviews-and-merges
-flow via the `pr-workflow` skill.
+non-release dependency-update PRs follow the normal
+human-reviews-and-merges flow via the `pr-workflow` skill.
 
-The release workflow is not complete until the bump PR has
-merged — that step prepares the repository for the next cycle
-and is part of this skill's responsibility.
+The release workflow is not complete until the bump PR and
+dep-update PR have merged — those steps prepare the repository
+for the next cycle and are part of this skill's responsibility.
 
 ### Phase 1 — Prepare release
 
@@ -368,13 +371,17 @@ URLs, list of artifacts confirmed).
 
 ### Phase 5 — Next-cycle dependency updates
 
-1. Create a `chore/next-cycle-deps-<version>` branch from `develop`.
+1. Create a `chore/<issue>-next-cycle-deps-<version>` branch from
+   `develop`, where `<issue>` is the tracking issue number.
 2. Update all applicable dependency categories (see
    [Dependency update categories](#dependency-update-categories)).
 3. Run full validation.
-4. Submit via `pr-workflow`.
-5. Comment on the tracking issue with Phase 5 results (dependency update PR
-   URL, categories updated).
+4. Submit the PR via `st-submit-pr`.
+5. Run `st-merge-when-green <dep-update-pr-url>`. This PR is an
+   agent-authored, agent-reviewed release-workflow artifact — the
+   same posture as the release and bump PRs.
+6. Comment on the tracking issue with Phase 5 results (dependency
+   update PR URL, categories updated).
 
 ### Phase 6 — Close tracking issue and finalize
 

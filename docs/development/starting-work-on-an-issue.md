@@ -55,6 +55,13 @@ git worktree add ".worktrees/issue-${N}-${SLUG}" \
   -b "${TYPE}/${N}-${SLUG}" origin/develop
 ```
 
+Pre-warm the dev container cache for the new branch so the first
+`st-docker-run` invocation is fast:
+
+```bash
+cd ".worktrees/issue-${N}-${SLUG}" && st-docker-cache build
+```
+
 Then either:
 
 - **Continue in the current session.** Use the worktree's absolute

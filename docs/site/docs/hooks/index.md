@@ -19,17 +19,18 @@ to achieve the intent correctly when the hook blocks you.
 ## Managed-repo gating
 
 Every hook below **except `block-heredoc`** is gated on a
-managed-repo check. A repo is "managed" when either of these marker
+managed-repo check. A repo is "managed" when any of these marker
 files exists at the repo root:
 
 - `docs/repository-standards.md` — the existing per-repo config
-- `st-config.yaml` — the future single-file config (transition target;
-  both are accepted during migration)
+- `st-config.toml` — the single-file config
+- `st-config.yaml` — legacy variant (both formats accepted during
+  migration)
 
-When neither marker is present, the gated hooks short-circuit to a
+When no marker is present, the gated hooks short-circuit to a
 no-op so the plugin doesn't interfere with ad-hoc git work in
 unrelated repositories. Detection is a pure-shell walk up from the
-bash session's CWD looking for either marker, terminating at a
+bash session's CWD looking for any marker, terminating at a
 `.git` boundary or the filesystem root. No `git` subprocess; the
 gate's overhead is a handful of `stat()` calls.
 
@@ -142,9 +143,11 @@ split from
   SSH-agent, host git config, or host `gh` auth — the container
   can't satisfy those.
 - **Warns** (via `additionalContext`, not deny) when a
-  container-only tool is invoked bare without `st-docker-run --`
-  (e.g., bare `ruff check .`). This sometimes works on hosts
-  with the tool installed but may silently use the wrong version.
+  container-only tool is invoked directly — whether bare
+  (e.g., `ruff check .`) or wrapped in `st-docker-run --`.
+  Both bypass the `scripts/dev/*.sh` abstraction layer that
+  each repo maintains. The correct entry point is
+  `st-validate-local`, which delegates to those scripts.
 
 The canonical tool lists live in
 `hooks/scripts/lib/host-container-tools.sh` so the same source of
@@ -152,12 +155,17 @@ truth powers both the hook and any future docs/lint.
 
 **Why.** The drift that produced #96 — 47 days of agents silently
 wrapping host tools in the container — was caused by documentation
-being the only enforcement mechanism. This hook makes the routing
-rule mechanical.
+being the only enforcement mechanism. Issue
+[#168](https://github.com/wphillipmoore/standard-tooling-plugin/issues/168)
+extended this to also catch agents bypassing the `scripts/dev`
+abstraction by calling linters directly (even correctly wrapped in
+`st-docker-run`). The agent should never invoke individual
+linters — `st-validate-local` handles tool routing internally.
 
 **Alternative.** For denied commands: invoke the host tool
 directly (drop the `st-docker-run --` prefix). For warned
-commands: wrap the container tool in `st-docker-run --`. See the
+commands: use `st-validate-local` instead of invoking individual
+linters. See the
 [`publish` skill's host-vs-container section](https://github.com/wphillipmoore/standard-tooling-plugin/blob/develop/skills/publish/SKILL.md#host-vs-container-commands)
 for the canonical split and rationale.
 
@@ -180,6 +188,35 @@ is the intended default once `st-submit-pr` is updated in
 issue with `gh issue close <N>`. The
 [`pr-workflow` skill](../skills/index.md#pr-workflow)'s "Close the
 issue" step documents this flow.
+
+### block-agent-merge
+
+**What.** Denies Bash tool invocations that call `gh pr merge`
+or `gh pr review --approve` on non-release PRs.
+
+**Why.** Agents must not merge feature or bugfix PRs — human
+review and merge is required. Skill prose saying "do not merge"
+is advisory; agents rationalize past it. This hook makes the
+rule mechanical. See
+[#162](https://github.com/wphillipmoore/standard-tooling-plugin/issues/162)
+for the incident that motivated this.
+
+**How it works.** The hook delegates branch verification to
+`st-check-pr-merge`, which resolves the PR's head branch via the
+GitHub API and checks it against the release-workflow allow-list
+(`release/*`, `chore/bump-version-*`, and
+`chore/*-next-cycle-deps-*`). Exit codes follow the
+three-state convention
+([standard-tooling#373](https://github.com/wphillipmoore/standard-tooling/issues/373)):
+0 = allowed, 1 = denied, 2 = unknown. The unknown case still
+blocks the merge, but the reason message distinguishes "denied by
+policy" from "tool failed" so the user knows whether to investigate
+a policy question or a tooling failure.
+
+**Alternative.** Hand off the PR URL to the user for review and
+merge. For release-workflow PRs (`release/*` and
+`chore/bump-version-*`), use `st-merge-when-green` from the
+[`publish` skill](../skills/index.md#publish).
 
 ## PreToolUse Hooks — Write|Edit
 

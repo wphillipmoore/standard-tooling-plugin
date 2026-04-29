@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.10] - 2026-04-29
+
+### Bug fixes
+
+- redirect container-tool warning to st-validate-local abstraction layer
+
+### Documentation
+
+- add spec for blocking agent merge of non-release PRs
+- update block-agent-merge spec with pushback resolutions
+- add implementation plan and alignment review for block-agent-merge
+- add Phase 5 dep-update PR to agent-merge policy
+
+### Features
+
+- add block-agent-merge PreToolUse hook
+- add st-docker-cache and st-config.toml support to workflows
+
 ## [1.4.9] - 2026-04-28
 
 ### Bug fixes
