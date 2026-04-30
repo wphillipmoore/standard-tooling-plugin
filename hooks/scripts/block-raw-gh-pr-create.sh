@@ -20,14 +20,21 @@ fi
 
 command=$(echo "$input" | jq -r '.tool_input.command')
 
-if echo "$command" | grep -qE '(^|[;&|]\s*)gh\s+pr\s+create(\s|$)'; then
-  jq -n '{
+deny() {
+  jq -n --arg reason "$1" '{
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "deny",
-      permissionDecisionReason: "Raw gh pr create is blocked. Use st-submit-pr instead. See docs/repository-standards.md for usage."
+      permissionDecisionReason: $reason
     }
   }'
+}
+
+if echo "$command" | grep -qE '(^|[;&|]\s*)gh\s+pr\s+create(\s|$)'; then
+  deny "Raw gh pr create is blocked. Use st-submit-pr instead. See docs/repository-standards.md for usage."
+elif echo "$command" | grep -qE 'gh\s+api\s+.*(/pulls)(\s|$)' \
+  && echo "$command" | grep -qiE '(-X\s+POST|--method\s+POST|-XPOST)'; then
+  deny "gh api POST to /pulls is equivalent to gh pr create and is blocked. Use st-submit-pr instead."
 else
   exit 0
 fi
