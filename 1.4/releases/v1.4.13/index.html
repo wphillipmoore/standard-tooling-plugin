@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.13/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.11/">
+        <link rel="next" href="../v1.4.12/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>v1.4.12 - Standard Tooling Plugin</title>
+        <title>v1.4.13 - Standard Tooling Plugin</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-1412-2026-04-30" class="md-skip">
+        <a href="#release-1413-2026-04-30" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              v1.4.12
+              v1.4.13
             
           </span>
         </div>
@@ -562,29 +562,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../v1.4.13/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    v1.4.13
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -602,7 +579,7 @@
   
   
   <span class="md-ellipsis">
-    v1.4.12
+    v1.4.13
     
   </span>
   
@@ -615,7 +592,7 @@
   
   
   <span class="md-ellipsis">
-    v1.4.12
+    v1.4.13
     
   </span>
   
@@ -646,28 +623,33 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Documentation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      Features
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v1.4.12/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.4.12
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1111,24 +1093,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#documentation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Documentation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      Features
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1145,28 +1109,12 @@
 
 
 
-<h1 id="release-1412-2026-04-30">Release 1.4.12 (2026-04-30)<a class="headerlink" href="#release-1412-2026-04-30" title="Permanent link">&para;</a></h1>
+<h1 id="release-1413-2026-04-30">Release 1.4.13 (2026-04-30)<a class="headerlink" href="#release-1413-2026-04-30" title="Permanent link">&para;</a></h1>
 <h2 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>remove uv from HOST_TOOLS to unblock st-docker-run -- uv run</strong></li>
-</ul>
-<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>add v2.0 skill rearchitecture spec and pushback review</strong></li>
-<li><strong>add TDD testing harness design spec for skill testing</strong></li>
-<li>
-<p><strong>revise TDD harness spec with pushback resolutions</strong>
-Apply all 9 pushback resolutions: make DeepEval role explicit as implementation framework, replace brittle string matching with GEval semantic evaluation, document test environment divergence and integration test milestone, elevate provider flexibility to core requirement, reframe RED-GREEN cycle with skill-gap-first methodology, add Python infrastructure bootstrap section, acknowledge non-deterministic testing honestly, remove overspecified result storage schema, restructure scenario YAML around DeepEval primitives.</p>
-</li>
-<li>
-<p><strong>add TDD testing harness pilot implementation plan</strong></p>
-</li>
-<li><strong>align spec and plan with alignment review resolutions</strong>
-Apply 4 alignment resolutions: clarify two-model distinction (test subject vs GEval judge) in spec provider section, update Python version to 3.14+ in both documents, add standard-tooling cross-reference to plan Task 1, add GEval threshold calibration note to plan Task 5.</li>
-</ul>
-<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>use st-wait-until-green in pr-workflow, add to host tools</strong></li>
+<li><strong>tighten Phase 3 bump-PR polling to ban ad-hoc shell scripts</strong></li>
+<li><strong>read consumer-refresh sequence from standard-tooling.toml instead of hardcoding</strong></li>
+<li><strong>update consumer-refresh to note reload-plugins bug and require session restart</strong></li>
 </ul>
 
 
