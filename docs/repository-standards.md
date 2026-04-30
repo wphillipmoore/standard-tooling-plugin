@@ -2,28 +2,11 @@
 
 ## Table of Contents
 
-- [AI co-authors](#ai-co-authors)
-- [Repository profile](#repository-profile)
 - [Post-merge async workflows](#post-merge-async-workflows)
-- [Validation policy](#validation-policy)
 - [External tooling dependencies](#external-tooling-dependencies)
 - [CI gates](#ci-gates)
 - [Commit and PR scripts](#commit-and-pr-scripts)
 - [Local deviations](#local-deviations)
-
-## AI co-authors
-
-- Co-Authored-By: wphillipmoore-codex <255923655+wphillipmoore-codex@users.noreply.github.com>
-- Co-Authored-By: wphillipmoore-claude <255925739+wphillipmoore-claude@users.noreply.github.com>
-
-## Repository profile
-
-- repository_type: library
-- versioning_scheme: semver
-- branching_model: library-release
-- release_model: tagged-release
-- supported_release_lines: 0.x (pre-release)
-- primary_language: none
 
 ## Post-merge async workflows
 
@@ -39,11 +22,6 @@ Repos with additional async post-merge workflows (e.g.,
 `docker-publish.yml` in `standard-tooling`) add them to this
 table. The `pr-workflow` skill reads this section to determine
 which workflows to verify.
-
-## Validation policy
-
-- canonical_local_validation_command: markdownlint .
-- validation_required: yes (markdownlint required)
 
 ## External tooling dependencies
 
@@ -83,8 +61,8 @@ st-commit \
 - `--scope` (optional): conventional commit scope
 - `--body` (optional): detailed commit body
 
-The script resolves the correct `Co-Authored-By` identity from the
-[AI co-authors](#ai-co-authors) section and the git hooks validate the result.
+The script resolves the correct `Co-Authored-By` identity from
+`standard-tooling.toml` and the git hooks validate the result.
 
 ### Submitting PRs
 
