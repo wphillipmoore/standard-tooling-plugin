@@ -399,11 +399,9 @@ the bookkeeping is still done.
 ### Phase 7 — Consumer-refresh hand-off
 
 The release artifacts are published, but **consumers haven't
-picked them up yet.** Every Claude Code session that has this
-plugin (or any standard-tooling-distributed plugin) installed
-needs an explicit local refresh — `/plugin marketplace update`
-downloads the new version but the running session keeps using the
-old in-memory state until `/reload-plugins` is run.
+picked them up yet.** Consumers need an explicit local action
+to pick up the new version — the specific commands vary by
+repository.
 
 **Display only — do not execute.** The agent's job is to show
 the user the exact commands to run, not to run them. The refresh
@@ -412,20 +410,15 @@ session they apply it. Running the commands silently or
 inconsistently (sometimes executing, sometimes displaying) is
 the behavior this rule exists to prevent.
 
-Surface the consumer-side update sequence verbatim. For this
-repo (`standard-tooling-plugin`):
+Read the consumer-refresh sequence from the repository's
+`standard-tooling.toml` under `[publish] consumer-refresh`.
+Display the value verbatim as the hand-off message.
 
-```text
-/plugin marketplace update standard-tooling-marketplace
-/reload-plugins
-```
-
-For other tool-providing repos (`standard-tooling`,
-`standard-tooling-docker`, `standard-actions`), look up the
-repo-specific refresh sequence from the repo's `Development
-and deployment` section in its README and display it verbatim.
-If the repo doesn't document a refresh sequence, that's a gap
-to file separately; do not invent one.
+If `[publish] consumer-refresh` is not set, tell the user
+explicitly that no consumer-refresh sequence is configured for
+this repository and suggest filing an issue to add one. **Never
+display a hardcoded example from a different repository** — that
+is worse than no hand-off at all.
 
 Phase 7 ends when the user has seen the refresh sequence in the
 hand-off message. The user is not required to *run* the
