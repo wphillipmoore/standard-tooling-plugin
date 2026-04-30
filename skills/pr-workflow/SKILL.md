@@ -134,10 +134,10 @@ of latency for nothing.
 Poll the PR's required checks:
 
 ```bash
-gh pr checks <pr-url> --watch --required
+st-wait-until-green <pr-url>
 ```
 
-`gh pr checks --watch` blocks until all required checks complete
+`st-wait-until-green` blocks until all required checks complete
 and exits non-zero if any required check failed.
 
 ### If checks pass

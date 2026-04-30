@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.12] - 2026-04-30
+
+### Bug fixes
+
+- remove uv from HOST_TOOLS to unblock st-docker-run -- uv run
+
+### Documentation
+
+- add v2.0 skill rearchitecture spec and pushback review
+- add TDD testing harness design spec for skill testing
+- revise TDD harness spec with pushback resolutions
+- add TDD testing harness pilot implementation plan
+- align spec and plan with alignment review resolutions
+
+### Features
+
+- use st-wait-until-green in pr-workflow, add to host tools
+
 ## [1.4.11] - 2026-04-29
 
 ### Bug fixes

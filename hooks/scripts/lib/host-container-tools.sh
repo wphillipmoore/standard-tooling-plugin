@@ -15,13 +15,13 @@ HOST_TOOLS=(
   st-submit-pr
   st-finalize-repo
   st-merge-when-green
+  st-wait-until-green
   st-validate-local
   st-docker-run
   st-ensure-label
   gh
   git
   git-cliff
-  uv
 )
 
 # Container-only: language toolchain validators.
