@@ -9,5 +9,14 @@ primary-language = "none"
 claude = "Co-Authored-By: wphillipmoore-claude <255925739+wphillipmoore-claude@users.noreply.github.com>"
 codex = "Co-Authored-By: wphillipmoore-codex <255923655+wphillipmoore-codex@users.noreply.github.com>"
 
+[publish]
+consumer-refresh = """\
+/plugin marketplace update standard-tooling-marketplace
+
+Note: /reload-plugins is currently buggy — it reloads skills but \
+does not reliably pick up hook changes. To fully apply the update, \
+restart any active Claude Code sessions.
+"""
+
 [dependencies]
 standard-tooling = "v1.4"

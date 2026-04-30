@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.13] - 2026-04-30
+
+### Bug fixes
+
+- tighten Phase 3 bump-PR polling to ban ad-hoc shell scripts
+- read consumer-refresh sequence from standard-tooling.toml instead of hardcoding
+- update consumer-refresh to note reload-plugins bug and require session restart
+
 ## [1.4.12] - 2026-04-30
 
 ### Bug fixes

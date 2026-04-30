@@ -271,10 +271,14 @@ or two of the release merge, well before `publish.yml` finishes.
 Handling the fast artifact first keeps the skill from serializing
 behind external async work.
 
-1. Poll for the bump PR with
-   `gh pr list --head chore/bump-version-<next> --json url`.
-   Retry until it appears (typically within ~60 seconds of
-   Phase 2 completing).
+1. Poll for the bump PR URL. Run
+   `gh pr list --head chore/bump-version-<next> --json url --jq '.[0].url'`
+   and retry at ~10-second intervals until it returns a non-empty
+   value (typically within ~60 seconds of Phase 2 completing).
+   **Do not invent shell polling scripts** — use your environment's
+   native polling mechanism (e.g., Claude Code's Monitor tool with
+   an `until` loop) and keep the check to this single `gh pr list`
+   command.
 2. **Verify issue linkage.** Read the bump PR body and check for
    a `Ref #N`, `Fixes #N`, `Closes #N`, or `Resolves #N`
    reference. The `version-bump-pr` composite action auto-
@@ -339,35 +343,6 @@ If either workflow failed, follow the failure-handling
 procedure. A failed publish after successful PR merges leaves
 the repository half-released; surface the failure and stop.
 
-#### Cross-repo image rebuild verification (standard-tooling only)
-
-When publishing `standard-tooling`, `publish.yml` fires a
-`repository_dispatch` to `standard-tooling-docker` that triggers
-a dev container image rebuild. Non-Python consumers get
-`standard-tooling` from the dev container image, not from the
-GitHub tag — until the image rebuilds, those consumers are still
-on the previous version.
-
-After confirming the local workflows above, verify the dispatched
-image rebuild in `standard-tooling-docker`:
-
-```bash
-gh run watch --exit-status --repo wphillipmoore/standard-tooling-docker \
-  $(gh run list --repo wphillipmoore/standard-tooling-docker \
-    --workflow docker-publish.yml --event repository_dispatch \
-    --limit 1 --json databaseId --jq '.[0].databaseId')
-```
-
-If the image rebuild fails, follow the failure-handling procedure.
-A tagged release whose dev container image was not rebuilt is a
-partial deployment — non-Python consumers remain on the previous
-version until the image is manually retriggered.
-
-Include the `docker-publish.yml` run URL in the Phase 4 tracking
-issue comment alongside the local workflow run URLs.
-
-Skip this step when publishing any other repository.
-
 Comment on the tracking issue with Phase 4 results (all run
 URLs, list of artifacts confirmed).
 
@@ -405,8 +380,7 @@ the bookkeeping is still done.
    - All PR URLs (release PR, bump PR, any recovery PRs)
    - Tag, develop tag, GitHub Release URLs
    - `publish.yml` and `docs.yml` (or equivalent) run URLs from
-     Phase 4; include the `docker-publish.yml` run URL when
-     publishing `standard-tooling`
+     Phase 4
    - Any failures encountered and the resolutions
 
    All issue and PR references in the summary must be full URLs
@@ -425,11 +399,9 @@ the bookkeeping is still done.
 ### Phase 7 — Consumer-refresh hand-off
 
 The release artifacts are published, but **consumers haven't
-picked them up yet.** Every Claude Code session that has this
-plugin (or any standard-tooling-distributed plugin) installed
-needs an explicit local refresh — `/plugin marketplace update`
-downloads the new version but the running session keeps using the
-old in-memory state until `/reload-plugins` is run.
+picked them up yet.** Consumers need an explicit local action
+to pick up the new version — the specific commands vary by
+repository.
 
 **Display only — do not execute.** The agent's job is to show
 the user the exact commands to run, not to run them. The refresh
@@ -438,20 +410,15 @@ session they apply it. Running the commands silently or
 inconsistently (sometimes executing, sometimes displaying) is
 the behavior this rule exists to prevent.
 
-Surface the consumer-side update sequence verbatim. For this
-repo (`standard-tooling-plugin`):
+Read the consumer-refresh sequence from the repository's
+`standard-tooling.toml` under `[publish] consumer-refresh`.
+Display the value verbatim as the hand-off message.
 
-```text
-/plugin marketplace update standard-tooling-marketplace
-/reload-plugins
-```
-
-For other tool-providing repos (`standard-tooling`,
-`standard-tooling-docker`, `standard-actions`), look up the
-repo-specific refresh sequence from the repo's `Development
-and deployment` section in its README and display it verbatim.
-If the repo doesn't document a refresh sequence, that's a gap
-to file separately; do not invent one.
+If `[publish] consumer-refresh` is not set, tell the user
+explicitly that no consumer-refresh sequence is configured for
+this repository and suggest filing an issue to add one. **Never
+display a hardcoded example from a different repository** — that
+is worse than no hand-off at all.
 
 Phase 7 ends when the user has seen the refresh sequence in the
 hand-off message. The user is not required to *run* the
