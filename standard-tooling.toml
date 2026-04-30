@@ -12,7 +12,10 @@ codex = "Co-Authored-By: wphillipmoore-codex <255923655+wphillipmoore-codex@user
 [publish]
 consumer-refresh = """\
 /plugin marketplace update standard-tooling-marketplace
-/reload-plugins
+
+Note: /reload-plugins is currently buggy — it reloads skills but \
+does not reliably pick up hook changes. To fully apply the update, \
+restart any active Claude Code sessions.
 """
 
 [dependencies]
