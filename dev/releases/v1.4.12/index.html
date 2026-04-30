@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.11/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.9/">
+        <link rel="next" href="../v1.4.11/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>v1.4.10 - Standard Tooling Plugin</title>
+        <title>v1.4.12 - Standard Tooling Plugin</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-1410-2026-04-29" class="md-skip">
+        <a href="#release-1412-2026-04-30" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              v1.4.10
+              v1.4.12
             
           </span>
         </div>
@@ -560,52 +560,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../v1.4.12/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    v1.4.12
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../v1.4.11/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    v1.4.11
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -623,7 +577,7 @@
   
   
   <span class="md-ellipsis">
-    v1.4.10
+    v1.4.12
     
   </span>
   
@@ -636,7 +590,7 @@
   
   
   <span class="md-ellipsis">
-    v1.4.10
+    v1.4.12
     
   </span>
   
@@ -689,6 +643,52 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v1.4.11/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.4.11
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v1.4.10/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.4.10
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1120,40 +1120,28 @@
 
 
 
-<h1 id="release-1410-2026-04-29">Release 1.4.10 (2026-04-29)<a class="headerlink" href="#release-1410-2026-04-29" title="Permanent link">&para;</a></h1>
+<h1 id="release-1412-2026-04-30">Release 1.4.12 (2026-04-30)<a class="headerlink" href="#release-1412-2026-04-30" title="Permanent link">&para;</a></h1>
 <h2 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>redirect container-tool warning to st-validate-local abstraction layer</strong></li>
+<li><strong>remove uv from HOST_TOOLS to unblock st-docker-run -- uv run</strong></li>
 </ul>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <ul>
+<li><strong>add v2.0 skill rearchitecture spec and pushback review</strong></li>
+<li><strong>add TDD testing harness design spec for skill testing</strong></li>
 <li>
-<p><strong>add spec for blocking agent merge of non-release PRs</strong>
-Design spec for a PreToolUse hook that intercepts gh pr merge and gh pr review --approve, denying them unless the target branch is a release-workflow PR (release/<em> or chore/bump-version-</em>). Covers hook behavior, edge cases, and the key insight that st-merge-when-green does not need an exemption because it calls gh pr merge via Python subprocess, not through the Bash tool boundary.</p>
+<p><strong>revise TDD harness spec with pushback resolutions</strong>
+Apply all 9 pushback resolutions: make DeepEval role explicit as implementation framework, replace brittle string matching with GEval semantic evaluation, document test environment divergence and integration test milestone, elevate provider flexibility to core requirement, reframe RED-GREEN cycle with skill-gap-first methodology, add Python infrastructure bootstrap section, acknowledge non-deterministic testing honestly, remove overspecified result storage schema, restructure scenario YAML around DeepEval primitives.</p>
 </li>
 <li>
-<p><strong>update block-agent-merge spec with pushback resolutions</strong>
-Incorporate all five pushback findings: delegate PR parsing to new st-check-pr-merge host command, add branch-name verification to st-merge-when-green, surface error messages on API failure, two-repo implementation split, and testing plan updates.</p>
+<p><strong>add TDD testing harness pilot implementation plan</strong></p>
 </li>
-<li>
-<p><strong>add implementation plan and alignment review for block-agent-merge</strong>
-Three-state exit code convention (0/1/2) for st-check-pr-merge, TDD task breakdown, spec updated to match. Filed standard-tooling#373 for fleet-wide adoption of the convention.</p>
-</li>
-<li>
-<p><strong>add Phase 5 dep-update PR to agent-merge policy</strong>
-Expand the publish skill's agent-merge policy to include the chore/<issue>-next-cycle-deps-<version> PR from Phase 5. Update Phase 5 to use st-merge-when-green instead of pr-workflow. Update block-agent-merge hook docs to reflect the expanded allow-list. Ref #165</p>
-</li>
+<li><strong>align spec and plan with alignment review resolutions</strong>
+Apply 4 alignment resolutions: clarify two-model distinction (test subject vs GEval judge) in spec provider section, update Python version to 3.14+ in both documents, add standard-tooling cross-reference to plan Task 1, add GEval threshold calibration note to plan Task 5.</li>
 </ul>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <ul>
-<li>
-<p><strong>add block-agent-merge PreToolUse hook</strong>
-New hook that blocks gh pr merge and gh pr review --approve on non-release PRs. Delegates branch verification to st-check-pr-merge with three-state exit code handling (0=allowed, 1=denied, 2=unknown). Registered in hooks.json and documented in hooks reference. Ref #162</p>
-</li>
-<li>
-<p><strong>add st-docker-cache and st-config.toml support to workflows</strong>
-Add st-docker-cache build step to starting-work-on-an-issue and pr-workflow preflight. Recognize st-config.toml as a managed-repo marker alongside st-config.yaml and docs/repository-standards.md. Update managed-repo-check.sh, hooks docs, and README. Ref #172</p>
-</li>
+<li><strong>use st-wait-until-green in pr-workflow, add to host tools</strong></li>
 </ul>
 
 
