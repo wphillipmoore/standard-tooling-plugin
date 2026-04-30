@@ -271,10 +271,14 @@ or two of the release merge, well before `publish.yml` finishes.
 Handling the fast artifact first keeps the skill from serializing
 behind external async work.
 
-1. Poll for the bump PR with
-   `gh pr list --head chore/bump-version-<next> --json url`.
-   Retry until it appears (typically within ~60 seconds of
-   Phase 2 completing).
+1. Poll for the bump PR URL. Run
+   `gh pr list --head chore/bump-version-<next> --json url --jq '.[0].url'`
+   and retry at ~10-second intervals until it returns a non-empty
+   value (typically within ~60 seconds of Phase 2 completing).
+   **Do not invent shell polling scripts** — use your environment's
+   native polling mechanism (e.g., Claude Code's Monitor tool with
+   an `until` loop) and keep the check to this single `gh pr list`
+   command.
 2. **Verify issue linkage.** Read the bump PR body and check for
    a `Ref #N`, `Fixes #N`, `Closes #N`, or `Resolves #N`
    reference. The `version-bump-pr` composite action auto-
