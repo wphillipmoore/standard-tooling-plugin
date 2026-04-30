@@ -22,7 +22,6 @@ HOST_TOOLS=(
   gh
   git
   git-cliff
-  uv
 )
 
 # Container-only: language toolchain validators.
