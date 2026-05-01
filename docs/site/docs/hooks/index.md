@@ -220,7 +220,7 @@ merge. For release-workflow PRs (`release/*` and
 
 ## PreToolUse Hooks — Write|Edit
 
-*(none currently active)*
+No hooks currently active in this category.
 
 ## PostToolUse Hooks — Bash
 
