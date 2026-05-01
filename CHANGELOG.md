@@ -198,7 +198,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Documentation
 
-- cross-ref git-workflow guide and refresh hook entries (block-memory-writes removed, block-protected-branch-work now worktree-aware) (#48)
+- cross-ref git-workflow guide and refresh hook entries (block-protected-branch-work now worktree-aware) (#48)
 
 ### Features
 

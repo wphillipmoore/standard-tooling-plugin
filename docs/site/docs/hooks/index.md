@@ -220,8 +220,7 @@ merge. For release-workflow PRs (`release/*` and
 
 ## PreToolUse Hooks — Write|Edit
 
-*(none currently active — `block-memory-writes` was removed on
-2026-04-23 when feedback memory was re-enabled fleet-wide.)*
+*(none currently active)*
 
 ## PostToolUse Hooks — Bash
 
