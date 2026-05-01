@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../v1.4.10/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../v1.4.8/">
+        <link rel="next" href="../v1.4.15/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>v1.4.9 - Standard Tooling Plugin</title>
+        <title>v1.4.16 - Standard Tooling Plugin</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#release-149-2026-04-28" class="md-skip">
+        <a href="#release-1416-2026-05-01" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              v1.4.9
+              v1.4.16
             
           </span>
         </div>
@@ -568,10 +568,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../v1.4.16/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    v1.4.16
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -582,6 +604,35 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bug fixes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -729,32 +780,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    v1.4.9
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../v1.4.9/" class="md-nav__link">
         
   
   
@@ -765,35 +794,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#bug-fixes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Bug fixes
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1184,11 +1184,10 @@
 
 
 
-<h1 id="release-149-2026-04-28">Release 1.4.9 (2026-04-28)<a class="headerlink" href="#release-149-2026-04-28" title="Permanent link">&para;</a></h1>
+<h1 id="release-1416-2026-05-01">Release 1.4.16 (2026-05-01)<a class="headerlink" href="#release-1416-2026-05-01" title="Permanent link">&para;</a></h1>
 <h2 id="bug-fixes">Bug fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>strengthen issue-closure step in pr-workflow so agents stop skipping it</strong>
-Issue closure was a subsection under After the merge that agents could overlook. Promoted to top-level section, added to the overview flow as step 5, and reinforced the key message throughout: using Ref instead of Fixes defers the timing of closure, not the responsibility. If the PR resolves the issue, the agent must close it explicitly after finalization.</li>
+<li><strong>remove 'Locating standard-tooling host commands' section — just run commands from PATH</strong></li>
 </ul>
 
 
