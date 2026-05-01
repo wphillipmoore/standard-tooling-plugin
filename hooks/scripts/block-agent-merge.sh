@@ -4,7 +4,7 @@
 # Delegates branch verification to st-check-pr-merge.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# either docs/repository-standards.md or st-config.yaml.
+# standard-tooling.toml.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
