@@ -516,6 +516,8 @@
       
         
       
+        
+      
     
     
     
@@ -562,6 +564,29 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../v1.4.17/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    v1.4.17
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1309,8 +1334,8 @@ All skills now run gh and st-* commands inside the dev container via st-docker-r
 </ul>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>cross-ref git-workflow guide and refresh hook entries (block-memory-writes removed, block-protected-branch-work now worktree-aware) (#48)</strong></li>
-<li>docs: cross-ref git-workflow guide and refresh hook entries (block-memory-writes removed, block-protected-branch-work now worktree-aware)</li>
+<li><strong>cross-ref git-workflow guide and refresh hook entries (block-protected-branch-work now worktree-aware) (#48)</strong></li>
+<li>docs: cross-ref git-workflow guide and refresh hook entries (block-protected-branch-work now worktree-aware)</li>
 </ul>
 <p>Refreshes <code>docs/site/docs/hooks/index.md</code> after the #44 and #45
 hook changes and ties it to the new canonical git-workflow guide
@@ -1324,8 +1349,7 @@ Implements P1 from issue standard-tooling#177: mechanical enforcement of workflo
 - block-raw-git-commit: forces use of st-commit
 - block-raw-gh-pr-create: forces use of st-submit-pr
 - block-protected-branch-work: prevents commits on main/develop
-- block-heredoc: prevents shell escaping failures from heredoc syntax
-- block-memory-writes: enforces auto-memory policy (no MEMORY.md writes)</p>
+- block-heredoc: prevents shell escaping failures from heredoc syntax</p>
 <p>All hooks use the permissionDecision deny mechanism with actionable error messages explaining the correct alternative.</p>
 <ul>
 <li><strong>add bootstrap session-start agent (#2)</strong>
