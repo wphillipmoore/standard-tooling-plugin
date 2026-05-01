@@ -162,8 +162,8 @@ within a single session.
   subsequent phases; store it and reuse it rather than re-reading or guessing.
   Compare the captured version to the latest `v*` tag. If it matches an
   existing tag, **abort** — the post-publish version bump did not run and the
-  release tooling needs investigation. Do not attempt to fix this
-  automatically.
+  release tooling needs investigation. Report the mismatch to the user
+  and stop — do not attempt to resolve this automatically.
 
 ## Version override
 
@@ -185,19 +185,21 @@ prepared.
 
 ## Failure handling
 
-**Do not work around failures.** When any step in any phase fails — a script
-error, a merge conflict, a CI failure, a missing artifact, a permissions error —
-the agent must:
+**Stop and report — never stop and fix.** When any step in any phase fails — a
+script error, a merge conflict, a CI failure, a missing artifact, a permissions
+error — the agent must:
 
-1. **Stop immediately.** Do not attempt to fix, retry, or work around the
-   failure.
+1. **Stop immediately.** Do not attempt to retry, work around, or assess the
+   severity of the failure. The agent must never judge whether an error is
+   "real" or "just environmental" — that assessment is itself the judgment
+   call that produces silent failures.
 2. **Comment on the tracking issue** with full diagnostics: the exact error
    message, the command that failed, the phase and step number, and any
    relevant context (branch name, PR number, CI run URL).
 3. **Inform the user** and wait for instructions.
 
 The purpose of this skill is to execute a documented, repeatable process.
-Manual workarounds mask tooling defects and prevent them from being fixed at
+Manual workarounds mask tooling defects and prevent them from being reported at
 the source. Every failure is a signal that the tooling or documentation needs
 improvement — surfacing failures is more valuable than completing the release.
 
