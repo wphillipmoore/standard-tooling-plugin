@@ -52,7 +52,9 @@ any file under the memory directory) without explicit human approval.
 
 **Exemption:** User-invoked skills that write to memory as part of
 their documented workflow (e.g., `/handoff stop`) have implicit
-approval — the user triggered the skill.
+approval — the user triggered the skill. The agent must never
+self-invoke an exempt skill to bypass this policy; the exemption
+applies only when the human initiates the skill invocation.
 
 ### Layer 2: MEMORY.md Policy Header
 
@@ -83,17 +85,19 @@ Two new skills in the `standard-tooling` plugin namespace.
 
 **Behavior:**
 
-1. Resolve the current project's memory directory path. The path is
-   `~/.claude/projects/<slug>/memory/` where `<slug>` is the session's
-   starting CWD with `/` replaced by `-` (e.g.,
-   `/Users/pmoore/dev/github/myrepo` →
-   `-Users-pmoore-dev-github-myrepo`).
+1. Resolve the current project's memory directory path using whatever
+   path Claude Code's runtime provides. The skill must not reimplement
+   the slug derivation — rely on the runtime's own resolution.
 2. If the directory does not exist, create it.
 3. If `MEMORY.md` does not exist, create it with the policy header and
-   an empty index structure.
-4. If `MEMORY.md` already exists, check whether the policy header is
-   present at the top. If missing or outdated, prepend/update it —
-   preserving existing index content.
+   an empty index structure. Any pre-existing memory files in the
+   directory without an index are left as orphans for `memory-audit`
+   to handle.
+4. If `MEMORY.md` already exists, check whether the policy header
+   matches the canonical header text carried in this skill. If the
+   text differs, replace the header — preserving existing index
+   content. The skill's own header text is the source of truth; no
+   separate version marker is needed.
 
 **Properties:**
 
@@ -115,8 +119,12 @@ Two new skills in the `standard-tooling` plugin namespace.
 
 2. **Walk-through.** Present each memory file one at a time. For each:
    - Show name, type, and content (summarized if long).
-   - Assess staleness — is this still accurate given current
-     code/config?
+   - Actively verify claims against the codebase: if the memory
+     references a file path, check it exists; if it references a
+     function, pattern, or convention, grep for it. Present
+     verification findings alongside the content.
+   - Assess staleness based on verification results — is this still
+     accurate given current code/config?
    - Suggest a disposition with reasoning:
      - **Keep** — still accurate, correctly scoped to this repo.
      - **Update** — substance is right, content needs refreshing.
@@ -186,15 +194,22 @@ consuming repo needs attention.
 
 1. Run `memory-init` — plant the policy header in MEMORY.md.
 2. Run `memory-audit` — review existing memory files accumulated under
-   the old unmanaged regime.
+   the old unmanaged regime. Skip this step for repos with no existing
+   memory files (header-only MEMORY.md from step 1).
 3. Update per-repo CLAUDE.md — replace any "ban memory" policy text
    with the new managed approach, or remove it if the global policy and
    MEMORY.md header provide sufficient coverage.
 
 **Mechanism:** Create a GitHub issue in each consuming repo. The issue
-describes the three steps, references #219 as the upstream decision,
-and provides enough context for a future session to execute without
+describes the steps (omitting the audit step for repos with no
+existing memory files), references #219 as the upstream decision, and
+provides enough context for a future session to execute without
 re-deriving the rationale.
+
+**Tracking:** Create a fleet tracking issue in `standard-tooling-plugin`
+with a checklist of all consuming repos. Each checklist line links to
+the per-repo rollout issue. This provides a single place to monitor
+rollout progress.
 
 **Scope:** Every repo in the fleet — including those with empty or
 nonexistent memory directories, so the policy header is planted
