@@ -16,7 +16,6 @@ HOST_TOOLS=(
   st-finalize-repo
   st-merge-when-green
   st-wait-until-green
-  st-validate-local
   st-docker-run
   st-ensure-label
   gh
