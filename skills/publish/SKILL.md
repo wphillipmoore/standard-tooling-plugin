@@ -116,7 +116,7 @@ st-docker-run -- markdownlint .
 
 ## Preflight
 
-- Read `docs/repository-standards.md` and locate the repository profile section.
+- Read `standard-tooling.toml` and locate the `[project]` section.
 - Read `repository_type` from the profile.
 - If the type is `library` or `tooling`, follow **library-release mode**.
 - If the type is `documentation`, follow **docs-only mode**.

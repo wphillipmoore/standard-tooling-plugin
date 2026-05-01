@@ -53,7 +53,7 @@ for the canonical split and rationale
 1. Confirm you are on a `chore/` branch off `develop` (e.g.,
    `chore/next-cycle-deps-<version>` for post-publish, or
    `chore/dep-update-<date>` for standalone).
-2. Read `docs/repository-standards.md` to identify:
+2. Read `standard-tooling.toml` to identify:
    - `repository_type` — determines which categories apply.
    - The canonical validation command.
 3. Verify `GH_TOKEN` is set.
