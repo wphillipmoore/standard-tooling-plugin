@@ -114,28 +114,6 @@ st-docker-run -- ruff check .
 st-docker-run -- markdownlint .
 ```
 
-### Locating standard-tooling host commands
-
-The host commands above are installed by the standard-tooling host venv.
-Search for them in this order:
-
-1. `../standard-tooling/.venv-host/bin/<command>` (sibling checkout with
-   host venv) — preferred
-2. `<command>` on PATH (already installed system-wide)
-
-If a required command is missing, **abort** with a message directing the
-user to set up the host venv:
-
-```text
-standard-tooling host commands not found. Run the following one-time setup:
-  cd ../standard-tooling
-  UV_PROJECT_ENVIRONMENT=.venv-host uv sync --group dev
-```
-
-Resolve once during preflight and use the resolved paths for all
-subsequent invocations. Do not mix host-PATH and venv-bin invocations
-within a single session.
-
 ## Preflight
 
 - Read `docs/repository-standards.md` and locate the repository profile section.
@@ -146,12 +124,8 @@ within a single session.
   not apply.
 - Confirm you are on the `develop` branch with a clean working tree.
 - Identify the canonical validation command from the repository profile.
-- Locate the standard-tooling host commands using the search algorithm
-  above (at minimum: `st-prepare-release`, `st-merge-when-green`,
-  `st-wait-until-green`, `st-finalize-repo`, `st-commit`,
-  `st-submit-pr`, `gh`, `git-cliff`, `st-docker-run`). If any
-  required command is missing, **abort** with
-  setup instructions.
+- Run host commands directly from PATH. If any required command is missing,
+  the command will fail and the agent follows the failure handling procedure.
 - Verify `GH_TOKEN` is set in the environment. If not, **abort** with a
   message directing the user to set it.
 - **Library-release only**: Determine the current version by running the
