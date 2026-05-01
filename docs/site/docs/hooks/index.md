@@ -19,18 +19,13 @@ to achieve the intent correctly when the hook blocks you.
 ## Managed-repo gating
 
 Every hook below **except `block-heredoc`** is gated on a
-managed-repo check. A repo is "managed" when any of these marker
-files exists at the repo root:
+managed-repo check. A repo is "managed" when `standard-tooling.toml`
+exists at the repo root.
 
-- `docs/repository-standards.md` — the existing per-repo config
-- `st-config.toml` — the single-file config
-- `st-config.yaml` — legacy variant (both formats accepted during
-  migration)
-
-When no marker is present, the gated hooks short-circuit to a
+When the marker is not present, the gated hooks short-circuit to a
 no-op so the plugin doesn't interfere with ad-hoc git work in
 unrelated repositories. Detection is a pure-shell walk up from the
-bash session's CWD looking for any marker, terminating at a
+bash session's CWD looking for the marker, terminating at a
 `.git` boundary or the filesystem root. No `git` subprocess; the
 gate's overhead is a handful of `stat()` calls.
 
@@ -50,7 +45,7 @@ pipe-chained equivalents).
 
 **Why.** `st-commit` constructs standards-compliant conventional
 commit messages with the co-author trailer resolved from
-`docs/repository-standards.md`. Hand-written `git commit -m`
+`standard-tooling.toml`. Hand-written `git commit -m`
 invocations drift from the commit-message standard over time; raw
 commits also bypass the co-author resolution entirely.
 
