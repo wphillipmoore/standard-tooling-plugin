@@ -27,7 +27,7 @@ if echo "$command" | grep -qE '(^|[;&|]\s*)git\s+commit(\s|$)'; then
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "deny",
-      permissionDecisionReason: "Raw git commit is blocked. Use st-commit instead. See docs/repository-standards.md for usage."
+      permissionDecisionReason: "Raw git commit is blocked. Use st-commit instead. See standard-tooling.toml for usage."
     }
   }'
 else
