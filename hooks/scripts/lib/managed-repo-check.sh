@@ -2,14 +2,11 @@
 # managed-repo-check.sh — shared helper for plugin enforcement hooks.
 #
 # A "managed" repo is one configured to use standard-tooling. The signal
-# is the presence of either of two marker files at the repo root:
+# is the presence of the marker file at the repo root:
 #
-#   docs/repository-standards.md   — the existing per-repo config
-#   st-config.toml                 — the single-file config
-#   st-config.yaml                 — legacy variant (both formats
-#                                    accepted during migration)
+#   standard-tooling.toml
 #
-# When neither marker is present, the plugin's enforcement hooks
+# When the marker is not present, the plugin's enforcement hooks
 # short-circuit to a no-op so the plugin does not interfere with
 # ad-hoc git work in repositories that have not opted in.
 #
@@ -24,8 +21,8 @@
 
 # is_managed_repo <starting-dir>
 #
-# Walks up from <starting-dir> looking for either marker file. Returns
-# 0 (true) if a marker is found, 1 (false) otherwise. Termination
+# Walks up from <starting-dir> looking for the marker file. Returns
+# 0 (true) if the marker is found, 1 (false) otherwise. Termination
 # conditions:
 #   1. A marker file is found    → return 0 (managed)
 #   2. A `.git` boundary is found (file or directory — both are valid
@@ -35,7 +32,7 @@
 #   3. The walk reaches `/` or an empty path → return 1 (not managed).
 #
 # Implementation note: pure shell. No subprocess spawns (no `git`,
-# no `dirname`, no `realpath`). Each iteration is three `[ -f ]`
+# no `dirname`, no `realpath`). Each iteration is one `[ -f ]`
 # and one `[ -e ]` — sub-millisecond per call.
 is_managed_repo() {
 	local dir="${1:-$PWD}"
@@ -47,7 +44,7 @@ is_managed_repo() {
 	esac
 
 	while [ "$dir" != "/" ] && [ -n "$dir" ]; do
-		if [ -f "$dir/docs/repository-standards.md" ] || [ -f "$dir/st-config.toml" ] || [ -f "$dir/st-config.yaml" ]; then
+		if [ -f "$dir/standard-tooling.toml" ]; then
 			return 0
 		fi
 		if [ -e "$dir/.git" ]; then

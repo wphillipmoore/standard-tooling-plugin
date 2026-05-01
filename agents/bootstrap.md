@@ -20,9 +20,9 @@ report at the end. Do NOT make any changes to the repository.
 
 ## 1. Repository Profile
 
-Read `docs/repository-standards.md` in the current working directory.
+Read `standard-tooling.toml` in the current working directory.
 
-If it exists, extract and report:
+If it exists, extract and report from the `[project]` table:
 
 - `repository_type`
 - `branching_model`

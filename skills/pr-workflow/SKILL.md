@@ -203,9 +203,9 @@ not force-remove sibling worktrees.
 ### Verify post-merge async workflows
 
 A PR is not "done" until every async workflow triggered by the
-merge has succeeded. The repository's `docs/repository-standards.md`
-lists the post-merge async workflows in its "Post-merge async
-workflows" section. Verify each one.
+merge has succeeded. The repository's `standard-tooling.toml`
+lists the post-merge async workflows in its `[workflows.post-merge]`
+section. Verify each one.
 
 For each workflow in the table:
 

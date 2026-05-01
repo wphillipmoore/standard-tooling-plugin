@@ -3,8 +3,7 @@
 # Blocks raw 'git commit' commands. Use st-commit instead.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# either docs/repository-standards.md or st-config.yaml. See
-# hooks/scripts/lib/managed-repo-check.sh.
+# standard-tooling.toml. See hooks/scripts/lib/managed-repo-check.sh.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,7 +26,7 @@ if echo "$command" | grep -qE '(^|[;&|]\s*)git\s+commit(\s|$)'; then
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "deny",
-      permissionDecisionReason: "Raw git commit is blocked. Use st-commit instead. See docs/repository-standards.md for usage."
+      permissionDecisionReason: "Raw git commit is blocked. Use st-commit instead. See standard-tooling.toml for usage."
     }
   }'
 else

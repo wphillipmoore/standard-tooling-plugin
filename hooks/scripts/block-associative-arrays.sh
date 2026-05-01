@@ -4,8 +4,7 @@
 # macOS ships bash 3.2 (GPLv2) and will not upgrade to GPLv3 versions.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# either docs/repository-standards.md or st-config.yaml. See
-# hooks/scripts/lib/managed-repo-check.sh.
+# standard-tooling.toml. See hooks/scripts/lib/managed-repo-check.sh.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
