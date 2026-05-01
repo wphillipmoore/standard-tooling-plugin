@@ -2,8 +2,8 @@
 name: bootstrap
 description: >-
   Session bootstrap agent. Use proactively at the start of every work session
-  to validate the repository profile, check branch state, verify the dev
-  container environment, and load context. Must run before any code changes.
+  to validate the repository profile, check branch state, and load context.
+  Must run before any code changes.
 tools: Read, Glob, Grep, Bash
 model: haiku
 maxTurns: 15
@@ -38,31 +38,7 @@ Run `git branch --show-current` and report the current branch.
 If the branch is `main` or `develop`, report:
 **WARNING: On protected branch. Create a feature branch before making changes.**
 
-## 3. Host Dispatcher (st-docker-run)
-
-Check if `st-docker-run` is available on PATH by running
-`command -v st-docker-run`.
-
-If found, report: **st-docker-run: available.**
-
-If not found, report (and include the link verbatim so the user can
-open it):
-
-**WARNING: st-docker-run not found on PATH. Validator dispatch
-(`st-validate-local`, dependency-update validation passes, and any
-container-routed lint/typecheck calls) will fail until it is installed.
-st-docker-run is the host-side dispatcher that runs language toolchain
-validators inside the dev container image; it is delivered by the
-standard-tooling Python package. See the Getting Started guide for host
-venv bootstrap and PATH setup:
-<https://github.com/wphillipmoore/standard-tooling/blob/develop/docs/site/docs/getting-started.md>**
-
-Release-cycle tools (`st-commit`, `st-submit-pr`, `st-prepare-release`,
-`st-finalize-repo`, `st-merge-when-green`) run on the host and do not
-need st-docker-run — see [issue #96](https://github.com/wphillipmoore/standard-tooling-plugin/issues/96)
-for the host-vs-container split.
-
-## 4. Standards and Conventions
+## 3. Standards and Conventions
 
 Check if `../standards-and-conventions` exists as a directory.
 
@@ -71,7 +47,7 @@ If found, report: **Standards repo: resolved locally.**
 If not found, report:
 **WARNING: Standards repo not found locally. Using web source as fallback.**
 
-## 5. Git Hooks
+## 4. Git Hooks
 
 Run `git config core.hooksPath` and report the result.
 
@@ -90,7 +66,6 @@ Repository:    <repo name from directory>
 Profile:       <repository_type> | <branching_model> | <primary_language>
 Branch:        <current branch> [WARNING if protected]
 Validation:    <canonical_local_validation_command or "not configured">
-st-docker-run: <available or "NOT FOUND">
 Standards:     <local or web fallback>
 Git hooks:     <hooks path or "NOT CONFIGURED">
 =========================
