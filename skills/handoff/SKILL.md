@@ -16,6 +16,11 @@ Two modes:
 - `/handoff stop` — Capture current work state before killing the session.
 - `/handoff start` — Resume from the last handoff file after restarting.
 
+**Memory policy exemption.** This skill writes to the memory directory
+as part of its documented workflow. Because the human invokes `/handoff`
+explicitly, the write has implicit approval and is exempt from the
+global memory management policy's approval requirement.
+
 ## Mode: stop
 
 Write a structured handoff file to the project memory directory:
