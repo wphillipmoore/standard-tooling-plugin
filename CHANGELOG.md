@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.17] - 2026-05-01
+
+### Bug fixes
+
+- fix markdown lint error in hooks index
+- update managed-repo detection to use standard-tooling.toml
+- update error messages to reference standard-tooling.toml
+- update skill and agent instructions to read standard-tooling.toml
+- remove st-validate-local from HOST_TOOLS
+
+### Documentation
+
+- add design spec for human-routed memory writes
+- apply pushback review resolutions to design spec
+- add implementation plan for human-routed memory writes
+- replace memory ban with managed-memory policy
+- add memory policy exemption note
+- update documentation to reference standard-tooling.toml
+
+### Features
+
+- add memory-init skill
+- add memory-audit skill
+
 ## [1.4.16] - 2026-05-01
 
 ### Bug fixes
@@ -198,7 +222,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Documentation
 
-- cross-ref git-workflow guide and refresh hook entries (block-protected-branch-work now worktree-aware) (#48)
+- cross-ref git-workflow guide and refresh hook entries (block-memory-writes removed, block-protected-branch-work now worktree-aware) (#48)
 
 ### Features
 
