@@ -229,7 +229,7 @@ extracts and forwards the `--repo` argument to the API call.
 3. **Allow case:** Input containing `gh pr merge <url>` where
    `st-check-pr-merge` returns 0. Expect allow (exit 0).
 4. **Non-managed repo:** Input with a cwd that has no
-   `docs/repository-standards.md`. Expect allow (exit 0).
+   `standard-tooling.toml`. Expect allow (exit 0).
 5. **No match:** Input containing `gh issue list`. Expect allow
    (exit 0).
 6. **gh pr review --approve block:** Input containing

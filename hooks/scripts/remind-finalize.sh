@@ -3,8 +3,7 @@
 # After st-submit-pr runs, reminds Claude to finalize after the PR merges.
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# either docs/repository-standards.md or st-config.yaml. See
-# hooks/scripts/lib/managed-repo-check.sh.
+# standard-tooling.toml. See hooks/scripts/lib/managed-repo-check.sh.
 set -euo pipefail
 
 input=$(cat)

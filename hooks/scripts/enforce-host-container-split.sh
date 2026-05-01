@@ -6,7 +6,7 @@
 # - WARN: bare-invoking a container-only tool without st-docker-run --
 #
 # Gated on managed-repo detection (#87): no-op in repos that lack
-# either docs/repository-standards.md or st-config.yaml.
+# standard-tooling.toml.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

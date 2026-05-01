@@ -14,7 +14,7 @@ code changes are made.
 
 ### Checks Performed
 
-1. **Repository Profile** — reads `docs/repository-standards.md` and extracts
+1. **Repository Profile** — reads `standard-tooling.toml` and extracts
    `repository_type`, `branching_model`, `primary_language`, and
    `canonical_local_validation_command`
 
