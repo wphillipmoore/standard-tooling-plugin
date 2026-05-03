@@ -16,7 +16,6 @@ substantially change it.
 |---|---|---|
 | [pr-workflow](#pr-workflow) | Submit a PR, wait for CI green, hand off to user; finalize after merge | Current |
 | [publish](#publish) | Drive library / tooling / documentation release flow (Phases 1–7) | Current |
-| [project-issue](#project-issue) | Create a well-structured GitHub issue via guided questions | Current |
 | [dependency-update](#dependency-update) | Run the dependency-update workflow | Current |
 | [deprecation-triage](#deprecation-triage) | Triage deprecation warnings into tracking issues | Current (reviewed 2026-04-23, no changes) |
 | [summarize](#summarize) | Decision / operation / stream-of-consciousness summaries; SOC mode is the canonical capture for the fleet | Current |
@@ -59,17 +58,6 @@ v1.4.5: Phase 4 verifies both `publish.yml` and `docs.yml`
 Phase 7 surfaces the consumer-refresh sequence (#105). The
 host-vs-container split is documented in the skill's own
 reference section.
-
-## project-issue
-
-**What it does.** Guided issue creation that collects issue type,
-summary, problem/goal, acceptance criteria, and validation steps.
-Creates the issue in the target repo with a label.
-
-**When to use.** When creating a new tracked issue that needs
-standard fields populated consistently.
-
-**Status.** Current.
 
 ## dependency-update
 
