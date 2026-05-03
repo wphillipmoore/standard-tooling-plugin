@@ -141,7 +141,6 @@ Shared workflow skills, invoked as `/standard-tooling:<name>`.
 |---|---|
 | `pr-workflow` | Guide PR creation, submission, and finalization |
 | `publish` | Drive library/tooling/documentation release flow |
-| `project-issue` | Create structured GitHub issues via guided questions |
 | `dependency-update` | Run the dependency-update workflow |
 | `deprecation-triage` | Triage deprecation warnings into tracking issues |
 | `summarize` | Decision / operation / stream-of-consciousness summaries |
