@@ -24,6 +24,7 @@ description: Drive the end-to-end publish workflow for library, tooling, and doc
   - [Phase 1 — Confirm deployment](#phase-1--confirm-deployment)
   - [Phase 2 — Toolchain dependency updates](#phase-2--toolchain-dependency-updates)
 - [Dependency update categories](#dependency-update-categories)
+- [Operational summary](#operational-summary)
 - [Resources](#resources)
 
 ## Overview
@@ -442,6 +443,53 @@ regenerate derived artifacts, run full validation. Failures follow the
 - Linters, formatters, and type checkers (ruff, mypy, ty, markdownlint-cli).
 - Test frameworks and coverage tools (pytest, coverage).
 - Build tools (hatch, setuptools, uv).
+
+## Operational summary
+
+After the final phase completes (Phase 7 for library-release,
+Phase 2 for docs-only), or after the workflow stops due to a
+failure, produce a concise operational report covering every phase.
+
+The publish workflow's failure policy is "stop and report — never
+stop and fix." The operational summary confirms either that every
+phase succeeded cleanly or documents exactly where the workflow
+stopped and why. A clean publish should produce an all-green
+report; any deviation is a signal worth investigating.
+
+**Library-release mode:**
+
+1. **Preflight** — pass/fail, version captured.
+2. **Version override** — applied/skipped, target version if
+   applied.
+3. **Phase 1 — Prepare release** — pass/fail, tracking issue and
+   PR URL.
+4. **Phase 2 — Merge release PR** — pass/fail, merge commit.
+5. **Phase 3 — Merge bump PR** — pass/fail, whether issue-linkage
+   repair was needed.
+6. **Phase 4 — Confirm publish** — pass/fail for each workflow
+   (`publish.yml`, `docs.yml`), artifacts confirmed.
+7. **Phase 5 — Dependency updates** — pass/fail, categories
+   updated.
+8. **Phase 6 — Close tracking issue** — pass/fail, finalization
+   outcome.
+9. **Phase 7 — Consumer-refresh hand-off** — displayed/not
+   displayed.
+
+**Docs-only mode:**
+
+1. **Preflight** — pass/fail.
+2. **Phase 1 — Confirm deployment** — pass/fail.
+3. **Phase 2 — Toolchain dependency updates** — pass/fail,
+   finalization outcome.
+
+If the workflow stopped at any phase due to a failure, mark all
+subsequent phases as "not reached" and note the failure that
+caused the stop. The failure should already be documented on the
+tracking issue per the failure-handling procedure; the summary
+collects it into a single view.
+
+This report is the final output of the skill — produce it after
+all other work is complete (or after the workflow has stopped).
 
 ## Resources
 

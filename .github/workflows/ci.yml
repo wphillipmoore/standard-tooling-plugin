@@ -5,43 +5,33 @@ on:
   workflow_call:
     inputs:
       run-security:
-        type: string
-        default: 'true'
-      run-release-gates:
-        type: string
-        default: 'true'
+        type: boolean
+        default: true
+      run-release:
+        type: boolean
+        default: true
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
 
   # ---------------------------------------------------------------------------
-  # Quality: shellcheck, mkdocs-build
+  # Quality
   # ---------------------------------------------------------------------------
 
-  shellcheck:
-    name: "ci: shellcheck"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Run shellcheck
-        run: |
-          files=$(find hooks/scripts -type f -name '*.sh' | sort)
-          if [ -n "$files" ]; then
-            echo "$files" | xargs shellcheck
-          else
-            echo "No shell scripts found."
-          fi
+  quality:
+    uses: wphillipmoore/standard-actions/.github/workflows/ci-quality.yml@v1.5
+    with:
+      language: shell
+      versions: '["latest"]'
 
   mkdocs-build:
-    name: "ci: mkdocs-build"
+    name: "quality / mkdocs-build"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -60,28 +50,27 @@ jobs:
         working-directory: docs/site
 
   # ---------------------------------------------------------------------------
-  # Security and standards (shared reusable workflow)
+  # Security and standards
   # ---------------------------------------------------------------------------
 
-  security-and-standards:
-    uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@v1.4
+  security:
+    uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@v1.5
     with:
-      language: bash
-      semgrep-language: ci
-      run-codeql: 'false'
-      run-standards: ${{ inputs.run-release-gates || 'true' }}
-      run-security: ${{ inputs.run-security || 'true' }}
+      language: shell
+      run-codeql: false
+      run-standards: ${{ inputs.run-release || true }}
+      run-security: ${{ inputs.run-security || true }}
     permissions:
       contents: read
       security-events: write
 
   # ---------------------------------------------------------------------------
-  # Release gates (PR only)
+  # Release
   # ---------------------------------------------------------------------------
 
-  release-gates:
-    name: "release: gates"
-    if: ${{ inputs.run-release-gates != 'false' }}
+  release:
+    name: "release / version-bump"
+    if: ${{ inputs.run-release != false }}
     runs-on: ubuntu-latest
     steps:
       - name: Skip on non-PR events
@@ -100,7 +89,7 @@ jobs:
 
       - name: Version divergence gate (PRs targeting develop)
         if: github.event_name == 'pull_request' && github.base_ref == 'develop'
-        uses: wphillipmoore/standard-actions/actions/release-gates/version-divergence@v1.4
+        uses: wphillipmoore/standard-actions/actions/release-gates/version-divergence@v1.5
         with:
           head-version-command: jq -r '.version' .claude-plugin/plugin.json
           main-version-command: git show origin/main:.claude-plugin/plugin.json | jq -r '.version'

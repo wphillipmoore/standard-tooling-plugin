@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.18] - 2026-05-05
+
+### Documentation
+
+- add fleet rollout design spec and implementation plan
+
+### Features
+
+- add operational summary section to pr-workflow and publish skills
+
 ## [1.4.17] - 2026-05-01
 
 ### Bug fixes

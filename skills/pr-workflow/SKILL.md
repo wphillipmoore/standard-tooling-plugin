@@ -15,6 +15,7 @@ description: Submit a pull request, wait for CI to go green, and hand off to the
 - [Hand-off to the user](#hand-off-to-the-user)
 - [After the merge](#after-the-merge)
 - [Close the issue](#close-the-issue)
+- [Operational summary](#operational-summary)
 - [Resources](#resources)
 
 ## Overview
@@ -262,6 +263,49 @@ do not close the issue. Only close when the last PR in the
 series has been finalized.
 
 This concludes the work cycle.
+
+## Operational summary
+
+After the work cycle concludes — whether at hand-off, after issue
+closure, or after surfacing an unrecoverable failure — produce a
+concise operational report covering every step of the workflow.
+
+The agent is expected to encounter CI failures and fix them
+autonomously during the CI-gate loop. These fixes happen without
+human review and some may be inappropriate — a workaround that
+silences a lint error, a test modification that masks a real
+regression, a dependency pin that papers over a conflict. The
+operational summary makes all of this visible so the user can
+catch problems during PR review rather than discovering them in
+production.
+
+Structure the report as a step-by-step checklist:
+
+1. **Preflight** — pass/fail, any missing tools or setup issues.
+2. **Pre-submission validation** — pass on first run, or list each
+   failure encountered and the fix applied.
+3. **Submission** — pass/fail.
+4. **CI gate** — number of fix cycles. For each cycle: the failing
+   check, the root cause, and the fix applied. If the final state
+   is not green, note what was surfaced to the user and why.
+5. **Hand-off** — whether CI was green at hand-off.
+6. **Finalization** — pass/fail, any non-fatal errors from
+   `st-finalize-repo`.
+7. **Post-merge workflows** — pass/fail for each workflow checked.
+8. **Issue closure** — completed or skipped (with reason if
+   skipped).
+
+For each step that required a fix or workaround, classify it:
+
+- **Mechanical** — formatting, lint, import ordering. Low risk.
+- **Substantive** — logic change, test modification, dependency
+  adjustment, configuration change. Requires review attention.
+
+The CI gate section is the most critical part of this report.
+This is where the agent operates autonomously and where
+inappropriate fixes are most likely to go unnoticed. Be explicit
+about every commit made during the fix loop — what changed, why,
+and whether the change was mechanical or substantive.
 
 ## Resources
 
