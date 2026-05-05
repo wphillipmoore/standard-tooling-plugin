@@ -18,5 +18,9 @@ does not reliably pick up hook changes. To fully apply the update, \
 restart any active Claude Code sessions.
 """
 
+[ci]
+versions = ["latest"]
+integration-tests = false
+
 [dependencies]
 standard-tooling = "v1.4"
