@@ -27,7 +27,7 @@ jobs:
   quality:
     uses: wphillipmoore/standard-actions/.github/workflows/ci-quality.yml@v1.5
     with:
-      language: shell
+      language: claude-plugin
       versions: '["latest"]'
       container-suffix: base
 
@@ -57,7 +57,7 @@ jobs:
   security:
     uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@v1.5
     with:
-      language: shell
+      language: claude-plugin
       run-codeql: false
       run-standards: ${{ inputs.run-release || true }}
       run-security: ${{ inputs.run-security || true }}
