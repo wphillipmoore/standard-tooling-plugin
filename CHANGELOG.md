@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.19] - 2026-05-06
+
+### Bug fixes
+
+- add container-suffix to ci-quality workflow call
+
 ## [1.4.18] - 2026-05-05
 
 ### Documentation
