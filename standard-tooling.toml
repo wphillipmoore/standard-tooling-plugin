@@ -3,7 +3,7 @@ repository-type = "library"
 versioning-scheme = "semver"
 branching-model = "library-release"
 release-model = "tagged-release"
-primary-language = "none"
+primary-language = "claude-plugin"
 
 [project.co-authors]
 claude = "Co-Authored-By: wphillipmoore-claude <255925739+wphillipmoore-claude@users.noreply.github.com>"
