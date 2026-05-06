@@ -27,7 +27,7 @@ jobs:
   quality:
     uses: wphillipmoore/standard-actions/.github/workflows/ci-quality.yml@v1.5
     with:
-      language: shell
+      language: claude-plugin
       versions: '["latest"]'
       container-suffix: base
 
@@ -57,7 +57,7 @@ jobs:
   security:
     uses: wphillipmoore/standard-actions/.github/workflows/ci-security.yml@v1.5
     with:
-      language: shell
+      language: claude-plugin
       run-codeql: false
       run-standards: ${{ inputs.run-release || true }}
       run-security: ${{ inputs.run-security || true }}
@@ -70,27 +70,7 @@ jobs:
   # ---------------------------------------------------------------------------
 
   release:
-    name: "release / version-bump"
-    if: ${{ inputs.run-release != false }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Skip on non-PR events
-        if: github.event_name != 'pull_request'
-        run: echo "Not a pull request; skipping release gates."
-
-      - name: Checkout code
-        if: github.event_name == 'pull_request'
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Mark workspace safe for git
-        if: github.event_name == 'pull_request'
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      - name: Version divergence gate (PRs targeting develop)
-        if: github.event_name == 'pull_request' && github.base_ref == 'develop'
-        uses: wphillipmoore/standard-actions/actions/release-gates/version-divergence@v1.5
-        with:
-          head-version-command: jq -r '.version' .claude-plugin/plugin.json
-          main-version-command: git show origin/main:.claude-plugin/plugin.json | jq -r '.version'
+    uses: wphillipmoore/standard-actions/.github/workflows/ci-release.yml@v1.5
+    with:
+      language: claude-plugin
+      run-release: ${{ inputs.run-release != false }}
