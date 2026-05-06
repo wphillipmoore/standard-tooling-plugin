@@ -29,6 +29,7 @@ jobs:
     with:
       language: shell
       versions: '["latest"]'
+      container-suffix: base
 
   mkdocs-build:
     name: "quality / mkdocs-build"
