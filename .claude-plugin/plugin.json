@@ -1,7 +1,7 @@
 {
   "name": "standard-tooling",
   "description": "Shared hooks, skills, agents, and commands for all managed repositories in the standard-tooling ecosystem.",
-  "version": "1.4.20",
+  "version": "1.4.21",
   "author": {
     "name": "wphillipmoore"
   },

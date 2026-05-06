@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.20] - 2026-05-06
+
+### Bug fixes
+
+- set primary-language to claude-plugin and use reusable ci-release workflow
+- use claude-plugin as language consistently across all workflow calls
+
 ## [1.4.19] - 2026-05-06
 
 ### Bug fixes
